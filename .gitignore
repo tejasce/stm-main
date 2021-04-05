@@ -5,3 +5,6 @@
 # cscope and ctags files
 cscope.*
 tags
+
+# dirs
+objs.*/
