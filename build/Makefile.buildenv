@@ -1,0 +1,45 @@
+DOCKERFILE := build/Dockerfile.buildenv
+IMAGE_NAME := stm32_buildenv
+CONTAINER_NAME := $(IMAGE_NAME)$(subst /,.,$(subst $(HOME),,$(TOPDIR)))
+DOCKER_CMD := DOCKER_BUILDKIT=1 docker
+
+THIS_USER := $(shell whoami)
+THIS_GROUP := $(shell id -gn "$(THIS_USER)")
+THIS_UID := $(shell id -u)
+THIS_GID := $(shell id -g)
+DOCKER_SOCKET := /var/run/docker.sock
+DOCKER_GID := $(shell stat -c '%g' $(DOCKER_SOCKET) 2>/dev/null)
+
+build:
+	$(DOCKER_CMD) build --build-arg USER=$(THIS_USER) \
+		--build-arg GROUP=$(THIS_GROUP) \
+		--build-arg UID=$(THIS_UID) \
+		--build-arg GID=$(THIS_GID) \
+		--build-arg DOCKER_GID=$(DOCKER_GID) \
+		-t $(IMAGE_NAME) -f $(DOCKERFILE) .
+
+clean_build: stop
+	$(DOCKER_CMD) image rm -f $(IMAGE_NAME) >/dev/null 2>&1 || true
+
+start:
+	$(DOCKER_CMD) run --name $(CONTAINER_NAME) --rm -d --privileged --net=host \
+		-u $(THIS_USER) \
+		-e USER=$(THIS_USER) -e DISPLAY=$(DISPLAY) \
+		-v /tmp/.X11-unix/:/tmp/.X11-unix -v "$(PWD):$(PWD)" -v $(DOCKER_SOCKET):$(DOCKER_SOCKET) -v /tmp:/tmp \
+		-w $(PWD) -it $(IMAGE_NAME)
+
+stop:
+	$(DOCKER_CMD) stop $(CONTAINER_NAME) >/dev/null 2>&1 || true
+
+run:
+	$(DOCKER_CMD) exec -it $(CONTAINER_NAME) /bin/bash
+
+buildenv_help:
+	@echo "Build environment targets"
+	@echo "      build: Create docker image (\"$(IMAGE_NAME)\") representing the build-environment for STM projects"
+	@echo "clean_build: Remove existing build-environment image"
+	@echo "      start: Start a build-environment image container for this workspace (aka \"buildenv shell\")"
+	@echo "       stop: Stop the currently running \"buildenv shell\""
+	@echo "        run: Run a new \"buildenv shell\" for this workspace"
+
+.PHONY: start stop run build
