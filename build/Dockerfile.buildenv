@@ -1,0 +1,41 @@
+# syntax=docker/dockerfile:experimental
+
+FROM ubuntu:bionic
+
+RUN apt-get update && \
+    apt-get install -y \
+        binutils-arm-none-eabi \
+        cmake \
+        docker.io \
+        gcc-arm-none-eabi \
+        libusb-1.0 \
+        make \
+        openocd \
+        sudo \
+        wget
+
+RUN wget https://github.com/stlink-org/stlink/archive/refs/tags/v1.6.1.tar.gz && \
+    tar xfz v1.6.1.tar.gz && cd stlink-1.6.1 && \
+    make install CMAKEFLAGS="-DCMAKE_INSTALL_PREFIX:PATH=/usr" && \
+    rm -rf v1.6.1.tar.gz stlink-1.6.1
+
+# Add "this" user to buildenv image
+ARG USER
+ARG GROUP
+ARG UID
+ARG GID
+RUN if [ $UID != 0 ]; then \
+        if [ "$USER" != "$GROUP" ]; then \
+            useradd --create-home -u $UID -g $GROUP $USER; \
+        else \
+            useradd --create-home -u $UID $USER; \
+        fi && \
+        echo "$USER ALL=(ALL) NOPASSWD:ALL" >/etc/sudoers.d/$USER;  \
+    fi;
+
+# Propagate host's docker guid
+ARG DOCKER_GID
+RUN if [ -n "$DOCKER_GID" ]; then \
+        groupmod docker -g $DOCKER_GID; \
+    fi && \
+    usermod -aG docker $USER
