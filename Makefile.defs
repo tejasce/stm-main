@@ -1,0 +1,99 @@
+#
+# @file: Makefile that defines absolute paths and macro definitions for
+#        the build system for the repo. A symlink to this file must
+#        exist at each directory level of this repo.
+#
+
+
+#
+# Use temporary variable to represent TOPDIR since this file maybe
+# included from anywhere in the directory tree. Since value of
+# TOPDIR is used to determine where this file was included from,
+# it may or may not be set. And paths of these makefiles must
+# always resolve.
+#
+_TOPDIR_ := $(shell git rev-parse --show-toplevel)
+Makefile.stm32 := $(_TOPDIR_)/build/Makefile.stm32
+Makefile.buildenv := $(_TOPDIR_)/build/Makefile.buildenv
+
+#
+# Macro to include a sub-directory
+#
+define subdirs
+PRODIR := $(1)
+#
+# Undef variables before include of a "rule makefile" (e.g. Makefile.stm32)
+#
+
+#
+# Variables representing supported product build rules.
+#
+STM32_ELF :=
+
+
+#
+# Rules for targets "[all|clean].$(PRODUCT)" would need their own
+# copy of following variables.
+#
+PRODUCT :=
+CFLAGS :=
+LFLAGS :=
+
+include $(1)/Makefile
+endef
+
+
+#
+# Enlist all supported rules to help locate all the targets in a directory
+#
+ALL_RULES := STM32_ELF
+PROD_PATT := $(ALL_RULES:%=/^%/)
+PROD_PATT := $(subst / /,/ || /,$(PROD_PATT))
+
+
+#
+# Wrapper macro to "subdirs" macro. Depending upon which directory "$(MAKE)"
+# is invoked upon, this macro will either simply include subdirectories or
+# invoke appropriate targets from the $(TOPDIR).
+#
+define inc_subdir
+ifeq ($(TOPDIR),)
+
+ifeq ($(MAKECMDGOALS),)
+TARGETS := all
+else
+TARGETS := $(MAKECMDGOALS)
+endif
+
+PROD_NAME := $(shell find $(1) -name Makefile -exec awk '$(PROD_PATT){print $$3}' {} \+)
+PROD_TGTS :=
+$$(foreach TGT,$$(TARGETS), $$(foreach PROD,$$(PROD_NAME),$$(eval PROD_TGTS += $$(TGT).$$(PROD))))
+
+$$(TARGETS):
+	$(Q)$(MAKE) -C $$(_TOPDIR_) --no-print-directory $$(PROD_TGTS)
+else
+$$(foreach SUBDIR,$(2:%=$(1)%),$$(eval $$(call subdirs,$$(SUBDIR))))
+
+endif
+endef
+
+#
+# Wrapper macro to include "Makefile.<rule>".
+#
+define inc_rule
+ifeq ($(TOPDIR),)
+
+ifeq ($(MAKECMDGOALS),)
+TARGETS := all.$(2)
+else
+TARGETS := $(MAKECMDGOALS:%=%.$(2))
+$(MAKECMDGOALS): $$(TARGETS)
+endif
+
+$$(TARGETS):
+	$(Q)$(MAKE) -C $$(_TOPDIR_) --no-print-directory $$@
+
+else
+include $(Makefile.$(1))
+endif
+endef
