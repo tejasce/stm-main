@@ -637,7 +637,15 @@ VL53L1X_ERROR VL53L1X_GetResult(uint16_t dev, VL53L1X_Result_t *pResult)
 	uint8_t Temp[17];
 	uint8_t RgSt = 255;
 
-	status = VL53L1_ReadMulti(dev, VL53L1_RESULT__RANGE_STATUS, Temp, 17);
+        Temp[0] = ReadRegister8(dev, VL53L1_RESULT__RANGE_STATUS + 0);
+        Temp[3] = ReadRegister8(dev, VL53L1_RESULT__RANGE_STATUS + 3);
+        Temp[7] = ReadRegister8(dev, VL53L1_RESULT__RANGE_STATUS + 7);
+        Temp[8] = ReadRegister8(dev, VL53L1_RESULT__RANGE_STATUS + 8);
+        Temp[13] = ReadRegister8(dev, VL53L1_RESULT__RANGE_STATUS + 13);
+        Temp[14] = ReadRegister8(dev, VL53L1_RESULT__RANGE_STATUS + 14);
+        Temp[15] = ReadRegister8(dev, VL53L1_RESULT__RANGE_STATUS + 15);
+        Temp[16] = ReadRegister8(dev, VL53L1_RESULT__RANGE_STATUS + 16);
+
 	RgSt = Temp[0] & 0x1F;
 	if (RgSt < 24)
 		RgSt = status_rtn[RgSt];
