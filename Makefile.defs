@@ -13,8 +13,23 @@
 # always resolve.
 #
 _TOPDIR_ := $(shell git rev-parse --show-toplevel)
-Makefile.stm32 := $(_TOPDIR_)/build/Makefile.stm32
+Makefile.arm := $(_TOPDIR_)/build/Makefile.arm
 Makefile.buildenv := $(_TOPDIR_)/build/Makefile.buildenv
+Makefile.stm32 := $(_TOPDIR_)/build/Makefile.stm32
+
+#
+# Common constants
+#
+DEPFLAGS = -MT $@ -MMD -MP -MF $*.Td
+
+#
+# Helper command line variable for build debugging
+#
+ifeq ($(VERBOSE),2)
+Q :=
+else
+Q := @
+endif
 
 #
 # Macro to include a sub-directory
@@ -36,6 +51,8 @@ STM32_ELF :=
 # copy of following variables.
 #
 PRODUCT :=
+CC :=
+OBJCOPY :=
 CFLAGS :=
 LFLAGS :=
 

@@ -1,0 +1,7 @@
+ifneq ($(TARGET_ARCH),arm)
+CC := /usr/bin/arm-none-eabi-gcc
+OBJCOPY := /usr/bin/arm-none-eabi-objcopy
+else
+CC := gcc
+OBJCOPY := objcopy
+endif
