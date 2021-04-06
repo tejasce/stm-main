@@ -1,13 +1,7 @@
 ifdef STM32_ELF
 
-# $(info $(shell echo))
-# $(info -> PRODIR: $(PRODIR))
-# $(info -> H_DIRS: $(H_DIRS))
-# $(info -> C_SRCS: $(C_SRCS))
-# $(info -> S_SRCS: $(S_SRCS))
-
-CC := /usr/bin/arm-none-eabi-gcc
-OBJCOPY := /usr/bin/arm-none-eabi-objcopy
+# Override to use arm-none-eabi-gcc
+include $(Makefile.arm)
 
 # This file defines rules for targets: [all|clean].$(PRODUCT)
 PRODUCT := $(STM32_ELF)
@@ -22,15 +16,10 @@ BIN := $(ELF:%.elf=%.bin)
 HEX := $(ELF:%.elf=%.hex)
 LD_MAP := $(ELF:%.elf=%.map)
 
-# $(info PRODIR: $(PRODIR))
-# $(info PRODUCT_OBJDIR: $(PRODUCT_OBJDIR))
-
 H_INCS := $(H_DIRS:%=-I$(PRODIR)/%)
 C_OBJS := $(C_SRCS:%.c=$(OBJDIR)/$(PRODIR)/%.o)
 S_OBJS := $(S_SRCS:%.s=$(OBJDIR)/$(PRODIR)/%.o)
 LD_SRC := $(LD_SRC:%=$(PRODIR)/%)
-
-# $(info H_INCS: $(H_INCS))
 
 # For top Makefile
 OBJ_SUBDIRS += $(sort $(dir $(C_OBJS) $(S_OBJS)))
@@ -39,8 +28,6 @@ CFLAGS += -Wall -mcpu=cortex-m4 -mlittle-endian -mthumb -Os -ggdb
 CFLAGS += $(H_INCS)
 CFLAGS += -DSTM32F401xE
 LFLAGS += -Wl,--gc-sections -Wl,-n,--print-map,--cref,-Map,$(LD_MAP)
-
-# $(info CFLAGS: $(CFLAGS))
 
 define C_OBJ_TGT
 $(1): $(subst $(OBJDIR)/,,$(1:%.o=%.c)) | $(dir $(1))
@@ -81,6 +68,8 @@ clean.$(PRODUCT):
 	@echo "Removing $(PRODUCT_OBJDIR)"
 	$(Q)rm -rf $(PRODUCT_OBJDIR)
 
+all.$(PRODUCT) clean.$(PRODUCT):: CC := $(CC)
+all.$(PRODUCT) clean.$(PRODUCT):: OBJCOPY := $(OBJCOPY)
 all.$(PRODUCT) clean.$(PRODUCT):: CFLAGS := $(CFLAGS)
 all.$(PRODUCT) clean.$(PRODUCT):: LFLAGS := $(LFLAGS)
 all.$(PRODUCT) clean.$(PRODUCT):: PRODUCT_OBJDIR := $(PRODUCT_OBJDIR)

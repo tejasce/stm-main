@@ -1,6 +1,6 @@
-DOCKERFILE := build/Dockerfile.buildenv
+DOCKERFILE := $(_TOPDIR_)/build/Dockerfile.buildenv
 IMAGE_NAME := stm32_buildenv
-CONTAINER_NAME := $(IMAGE_NAME)$(subst /,.,$(subst $(HOME),,$(TOPDIR)))
+CONTAINER_NAME := $(IMAGE_NAME)$(subst /,.,$(subst $(HOME),,$(_TOPDIR_)))
 DOCKER_CMD := DOCKER_BUILDKIT=1 docker
 
 THIS_USER := $(shell whoami)
@@ -10,36 +10,60 @@ THIS_GID := $(shell id -g)
 DOCKER_SOCKET := /var/run/docker.sock
 DOCKER_GID := $(shell stat -c '%g' $(DOCKER_SOCKET) 2>/dev/null)
 
-build:
-	$(DOCKER_CMD) build --build-arg USER=$(THIS_USER) \
-		--build-arg GROUP=$(THIS_GROUP) \
-		--build-arg UID=$(THIS_UID) \
-		--build-arg GID=$(THIS_GID) \
-		--build-arg DOCKER_GID=$(DOCKER_GID) \
-		-t $(IMAGE_NAME) -f $(DOCKERFILE) .
+define buildenv_image
+	if [ "$(1)" = "clean" ]; then \
+		$(DOCKER_CMD) image rm -f $(IMAGE_NAME) >/dev/null 2>&1 || true; \
+	elif [ -z "$$($(DOCKER_CMD) images -q $(IMAGE_NAME) 2>/dev/null)" ]; then \
+		$(DOCKER_CMD) build --build-arg USER=$(THIS_USER) \
+			--build-arg GROUP=$(THIS_GROUP) \
+			--build-arg UID=$(THIS_UID) \
+			--build-arg GID=$(THIS_GID) \
+			--build-arg DOCKER_GID=$(DOCKER_GID) \
+			-t $(IMAGE_NAME) -f $(DOCKERFILE) .; \
+	fi;
+endef
 
-clean_build: stop
-	$(DOCKER_CMD) image rm -f $(IMAGE_NAME) >/dev/null 2>&1 || true
+define buildenv_container
+	if [ "$(1)" = "stop" ]; then \
+		$(DOCKER_CMD) stop $(CONTAINER_NAME) >/dev/null 2>&1 || true; \
+	elif [ "$$($(DOCKER_CMD) ps --filter name=$(CONTAINER_NAME) --format "{{.Names}}")" != "$(CONTAINER_NAME)" ]; then \
+		$(DOCKER_CMD) run --name $(CONTAINER_NAME) --rm -d --privileged --net=host \
+			-u $(THIS_USER) \
+			-e USER=$(THIS_USER) -e DISPLAY=$(DISPLAY) -e BUILDENV_SHELL=true \
+			-v /tmp/.X11-unix/:/tmp/.X11-unix -v "$(PWD):$(PWD)" -v $(DOCKER_SOCKET):$(DOCKER_SOCKET) -v /tmp:/tmp \
+			-w $(PWD) -it $(IMAGE_NAME); \
+	fi;
+endef
 
-start:
-	$(DOCKER_CMD) run --name $(CONTAINER_NAME) --rm -d --privileged --net=host \
-		-u $(THIS_USER) \
-		-e USER=$(THIS_USER) -e DISPLAY=$(DISPLAY) \
-		-v /tmp/.X11-unix/:/tmp/.X11-unix -v "$(PWD):$(PWD)" -v $(DOCKER_SOCKET):$(DOCKER_SOCKET) -v /tmp:/tmp \
-		-w $(PWD) -it $(IMAGE_NAME)
+define buildenv_shell
+	if [ "$(BUILDENV_SHELL)" = "true" ]; then \
+		echo "Already inside buildenv-shell."; \
+	else \
+		$(DOCKER_CMD) exec -it $(CONTAINER_NAME) /bin/bash; \
+	fi;
+endef
 
-stop:
-	$(DOCKER_CMD) stop $(CONTAINER_NAME) >/dev/null 2>&1 || true
+mkenv:
+	@$(call buildenv_image)
 
-run:
-	$(DOCKER_CMD) exec -it $(CONTAINER_NAME) /bin/bash
+startenv: mkenv
+	@$(call buildenv_container)
 
-buildenv_help:
+stopenv:
+	@$(call buildenv_container,stop)
+
+env: startenv
+	@$(call buildenv_shell)
+
+rmenv: stopenv
+	@$(call buildenv_image,clean)
+
+#
+# Advertise only high-level targets
+#
+help.buildenv:
 	@echo "Build environment targets"
-	@echo "      build: Create docker image (\"$(IMAGE_NAME)\") representing the build-environment for STM projects"
-	@echo "clean_build: Remove existing build-environment image"
-	@echo "      start: Start a build-environment image container for this workspace (aka \"buildenv shell\")"
-	@echo "       stop: Stop the currently running \"buildenv shell\""
-	@echo "        run: Run a new \"buildenv shell\" for this workspace"
+	@echo "   env: Run a \"buildenv shell\" for this workspace"
+	@echo " rmenv: Remove existing build-environment (must exit \"buildenv shell\" first)"
 
-.PHONY: start stop run build
+.PHONY: mkenv stopenv

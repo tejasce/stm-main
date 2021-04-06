@@ -5,17 +5,7 @@ TOPDIR := $(shell git rev-parse --show-toplevel 2>/dev/null)
 ifeq ($(TOPDIR),)
 $(error "Not a git repository.")
 endif
-DEPFLAGS = -MT $@ -MMD -MP -MF $*.Td
 TARGET_ARCH := $(shell uname -m)
-
-#
-# Helper command line variable for build debugging
-#
-ifeq ($(VERBOSE),2)
-Q :=
-else
-Q := @
-endif
 
 #
 # Variables populated by makesfiles at each level that includes Makefile.<rule>
@@ -58,5 +48,4 @@ help:
 	@echo "      clean: remove all previously built firmware objects"
 	@echo "       help: show this message"
 	@echo
-	@$(MAKE) --no-print-directory buildenv_help
-
+	@$(MAKE) --no-print-directory help.buildenv
