@@ -15,6 +15,7 @@
 _TOPDIR_ := $(shell git rev-parse --show-toplevel)
 Makefile.arm := $(_TOPDIR_)/build/Makefile.arm
 Makefile.buildenv := $(_TOPDIR_)/build/Makefile.buildenv
+Makefile.cbin := $(_TOPDIR_)/build/Makefile.cbin
 Makefile.clib := $(_TOPDIR_)/build/Makefile.clib
 Makefile.stm32 := $(_TOPDIR_)/build/Makefile.stm32
 Makefile.x86_64 := $(_TOPDIR_)/build/Makefile.x86_64
@@ -47,6 +48,7 @@ PRODIR := $(1)
 #
 STM32_ELF :=
 C_LIB :=
+C_BIN :=
 
 
 #
@@ -64,7 +66,7 @@ endef
 #
 # Enlist all supported rules to help locate all the targets in a directory
 #
-ALL_RULES := STM32_ELF C_LIB
+ALL_RULES := STM32_ELF C_LIB C_BIN
 PROD_PATT := $(ALL_RULES:%=/^%/)
 PROD_PATT := $(subst / /,/ || /,$(PROD_PATT))
 

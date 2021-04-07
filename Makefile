@@ -18,7 +18,7 @@ OBJ_SUBDIRS :=
 # Define targets for directories at the next level
 #
 THIS_DIR := $(dir $(lastword $(MAKEFILE_LIST)))
-SUBDIRS := firmware libs
+SUBDIRS := firmware libs cmds
 include Makefile.defs
 $(eval $(call inc_subdir,$(THIS_DIR),$(SUBDIRS)))
 
@@ -33,7 +33,7 @@ $(OBJ_SUBDIRS):
 #
 all: $(patsubst %,all.%,$(PRODUCTS))
 clean: $(patsubst %,clean.%,$(PRODUCTS))
-	@rm -rf $(OBJDIRS)
+	@rm -rf $(sort $(OBJDIRS))
 
 .DEFAULT_GOAL := all
 
