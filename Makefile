@@ -6,7 +6,10 @@ ifeq ($(TOPDIR),)
 $(error "Not a git repository.")
 endif
 TARGET_ARCH := $(shell uname -m)
-SUPPORTED_ARCHS := aarch64 x86_64
+SUPPORTED_ARCHS := $(TARGET_ARCH) arm
+ifeq ($(TARGET_ARCH),x86_64)
+SUPPORTED_ARCHS += aarch64
+endif
 OBJDIR_PREFIX := objs.
 
 #
@@ -42,7 +45,16 @@ $(OBJ_SUBDIRS):
 #
 all: $(patsubst %,all.%,$(PRODUCTS))
 clean: $(patsubst %,clean.%,$(PRODUCTS))
+	$(Q)rm -rf $(OBJDIR_PREFIX)$(ARCH)
+
+#
+# Wrapper useful "clean" targets
+#
+cleanall:
 	$(Q)rm -rf $(OBJDIR_PREFIX)*
+
+clobber: cleanall
+	$(Q)rm -f cscope.* tags
 
 .DEFAULT_GOAL := all
 
@@ -53,8 +65,14 @@ include $(Makefile.buildenv)
 
 help:
 	@echo "Build Targets"
-	@echo "        all: build all firmware objects (default)"
-	@echo "      clean: remove all previously built firmware objects"
+	@echo "        all: build all $(ARCH) products (default)"
+	@echo "      clean: remove all previously built $(ARCH) products"
+	@echo "   cleanall: remove all products for all targets architectues"
+	@echo "    clobber: cleanall + remove cscope/ctags"
 	@echo "       help: show this message"
 	@echo
 	@$(MAKE) --no-print-directory help.buildenv
+	@echo
+	@echo "Commmand-line overrides"
+	@echo "       ARCH: build for a target architecture (Supported: $(SUPPORTED_ARCHS) | Default: $(TARGET_ARCH))"
+	@echo "    VERBOSE: build verbose level (Supported: 1 2 | Default: quiet)"
