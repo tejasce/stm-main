@@ -10,6 +10,8 @@ PRODUCTS += $(PRODUCT)
 
 OBJDIR := objs.arm
 PRODUCT_OBJDIR := $(OBJDIR)/$(PRODIR)
+# For top Makefile
+OBJDIRS += $(OBJDIR)
 
 ELF := $(PRODUCT_OBJDIR)/$(STM32_ELF).elf
 BIN := $(ELF:%.elf=%.bin)
@@ -29,17 +31,8 @@ CFLAGS += $(H_INCS)
 CFLAGS += -DSTM32F401xE
 LFLAGS += -Wl,--gc-sections -Wl,-n,--print-map,--cref,-Map,$(LD_MAP)
 
-define C_OBJ_TGT
-$(1): $(subst $(OBJDIR)/,,$(1:%.o=%.c)) | $(dir $(1))
-	@if [ "$(VERBOSE)" ]; then \
-		echo "Building $$< => $$@"; \
-	fi;
-	$(Q)$$(CC) $$(CFLAGS) $$(DEPFLAGS) -c $$< -o $$@
-	@mv -f $$*.Td $$*.d && touch $$@
-
-include $(wildcard $(patsubst %,%.d,$(basename $(1))))
-endef
-$(foreach OBJFILE,$(C_OBJS),$(eval $(call C_OBJ_TGT,$(OBJFILE))))
+# Add targets for each .o file
+$(eval $(call add_c_obj_tgts,$(C_OBJS)))
 
 define S_OBJ_TGT
 $(1): $(subst $(OBJDIR)/,,$(1:%.o=%.s)) | $(dir $(1))

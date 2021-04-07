@@ -11,14 +11,14 @@ TARGET_ARCH := $(shell uname -m)
 # Variables populated by makesfiles at each level that includes Makefile.<rule>
 #
 PRODUCTS :=
-OBJDIR :=
+OBJDIRS :=
 OBJ_SUBDIRS :=
 
 #
 # Define targets for directories at the next level
 #
 THIS_DIR := $(dir $(lastword $(MAKEFILE_LIST)))
-SUBDIRS := firmware
+SUBDIRS := firmware libs
 include Makefile.defs
 $(eval $(call inc_subdir,$(THIS_DIR),$(SUBDIRS)))
 
@@ -33,7 +33,7 @@ $(OBJ_SUBDIRS):
 #
 all: $(patsubst %,all.%,$(PRODUCTS))
 clean: $(patsubst %,clean.%,$(PRODUCTS))
-	@rm -rf $(OBJDIR)
+	@rm -rf $(OBJDIRS)
 
 .DEFAULT_GOAL := all
 

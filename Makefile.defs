@@ -15,7 +15,9 @@
 _TOPDIR_ := $(shell git rev-parse --show-toplevel)
 Makefile.arm := $(_TOPDIR_)/build/Makefile.arm
 Makefile.buildenv := $(_TOPDIR_)/build/Makefile.buildenv
+Makefile.clib := $(_TOPDIR_)/build/Makefile.clib
 Makefile.stm32 := $(_TOPDIR_)/build/Makefile.stm32
+Makefile.x86_64 := $(_TOPDIR_)/build/Makefile.x86_64
 
 #
 # Common constants
@@ -44,6 +46,7 @@ PRODIR := $(1)
 # Variables representing supported product build rules.
 #
 STM32_ELF :=
+C_LIB :=
 
 
 #
@@ -51,8 +54,6 @@ STM32_ELF :=
 # copy of following variables.
 #
 PRODUCT :=
-CC :=
-OBJCOPY :=
 CFLAGS :=
 LFLAGS :=
 
@@ -63,7 +64,7 @@ endef
 #
 # Enlist all supported rules to help locate all the targets in a directory
 #
-ALL_RULES := STM32_ELF
+ALL_RULES := STM32_ELF C_LIB
 PROD_PATT := $(ALL_RULES:%=/^%/)
 PROD_PATT := $(subst / /,/ || /,$(PROD_PATT))
 
@@ -73,7 +74,13 @@ PROD_PATT := $(subst / /,/ || /,$(PROD_PATT))
 # is invoked upon, this macro will either simply include subdirectories or
 # invoke appropriate targets from the $(TOPDIR).
 #
+# Initializes $(CC) for the target architecture.
+# May get overriden by a Makefile.<rule> (during $(call inc_rule,<rule>,<product>))
+#
+#
 define inc_subdir
+include $(Makefile.$(TARGET_ARCH))
+
 ifeq ($(TOPDIR),)
 
 ifeq ($(MAKECMDGOALS),)
@@ -113,4 +120,19 @@ $$(TARGETS):
 else
 include $(Makefile.$(1))
 endif
+endef
+
+define C_OBJ_TGT
+$(1): $(subst $(OBJDIR)/,,$(1:%.o=%.c)) | $(dir $(1))
+	@if [ "$(VERBOSE)" ]; then \
+		echo "Building $$< => $$@"; \
+	fi;
+	$(Q)$$(CC) $$(CFLAGS) $$(DEPFLAGS) -c $$< -o $$@
+	@mv -f $$*.Td $$*.d && touch $$@
+
+include $(wildcard $(patsubst %,%.d,$(basename $(1))))
+endef
+
+define add_c_obj_tgts
+$$(foreach OBJFILE,$(1),$$(eval $$(call C_OBJ_TGT,$$(OBJFILE))))
 endef
