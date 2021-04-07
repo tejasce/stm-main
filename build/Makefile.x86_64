@@ -1,0 +1,3 @@
+CC := gcc
+AR := ar
+OBJCOPY := objcopy

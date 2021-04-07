@@ -1,0 +1,70 @@
+ifdef C_LIB
+
+# This file defines rules for targets: [all|clean].$(PRODUCT)
+PRODUCT := $(C_LIB)
+# For top Makefile
+PRODUCTS += $(PRODUCT)
+
+OBJDIR := objs.$(TARGET_ARCH)
+PRODUCT_OBJDIR := $(OBJDIR)/$(PRODIR)
+# For top Makefile
+OBJDIRS += $(OBJDIR)
+
+LIB_SO := $(PRODUCT_OBJDIR)/$(C_LIB).so
+LIB_AR := $(LIB_SO:%.so=%.a)
+
+H_INCS := $(H_DIRS:%=-I$(PRODIR)/%)
+C_OBJS := $(C_SRCS:%.c=$(OBJDIR)/$(PRODIR)/%.o)
+APIHDR := $(I_HDRS:%=$(OBJDIR)/$(PRODIR)/%)
+
+# For top Makefile
+OBJ_SUBDIRS += $(sort $(dir $(C_OBJS)))
+
+# Dependency target, includes and LD paths (e.g. path/to/libdir:<C_LIB>)
+DEPDIR := $(foreach dep,$(DEPEND),$(firstword $(subst :, ,$(dep))))
+DEPTGT := $(foreach dep,$(DEPEND),$(lastword $(subst :, ,$(dep))))
+DEP_SO := $(foreach dep,$(DEPEND),$(patsubst %,$(OBJDIR)/%.so,$(subst :,/,$(dep))))
+DEP_AR := $(DEP_SO:%.so=%.a)
+DEPINC := $(DEPDIR:%=-I$(OBJDIR)/%)
+DEP_LD := $(DEPDIR:%=-L$(OBJDIR)/%)
+DEP_LD += $(DEPTGT:%=-l%)
+
+CFLAGS += -Wall -g -O3 -fPIC
+CFLAGS += $(H_INCS)
+CFLAGS += $(DEPINC)
+LFLAGS += $(DEP_LD)
+
+# Add targets for each .o file
+$(eval $(call add_c_obj_tgts,$(C_OBJS)))
+
+$(LIB_SO): $(C_OBJS) $(DEP_SO)
+	@echo "Creating $@"
+	$(Q)$(CC) $(LFLAGS) -shared -o $@ $^
+
+$(LIB_AR): $(C_OBJS) $(DEP_AR)
+	@echo "Creating $@"
+	$(Q)$(AR) -c -r -s -o $@ $^
+
+# Create symllink to each include header in target obj directory
+$(sort $(dir $(APIHDR))):
+	@mkdir -p $@
+define HDR_SYMLINK_TGT
+$(1): $(subst $(OBJDIR)/,,$(1)) | $(dir $(1))
+	@ln -sf $$< $$@
+endef
+$(foreach hdr,$(APIHDR),$(eval $(call HDR_SYMLINK_TGT,$(hdr))))
+
+all.$(PRODUCT): $(LIB_SO) $(LIB_AR) $(APIHDR)
+
+clean.$(PRODUCT):
+	@echo "Removing $(PRODUCT_OBJDIR)"
+	$(Q)rm -rf $(PRODUCT_OBJDIR)
+
+all.$(PRODUCT) clean.$(PRODUCT):: CC := $(CC)
+all.$(PRODUCT) clean.$(PRODUCT):: AR := $(AR)
+all.$(PRODUCT) clean.$(PRODUCT):: CFLAGS := $(CFLAGS)
+all.$(PRODUCT) clean.$(PRODUCT):: LFLAGS := $(LFLAGS)
+all.$(PRODUCT) clean.$(PRODUCT):: PRODUCT_OBJDIR := $(PRODUCT_OBJDIR)
+
+endif  # define C_LIB
+
