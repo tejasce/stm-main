@@ -7,13 +7,18 @@ RUN apt-get update && \
         binutils-arm-none-eabi \
         cmake \
         docker.io \
-	gcc-aarch64-linux-gnu \
+	gcc-arm-linux-gnueabihf \
         gcc-arm-none-eabi \
         libusb-1.0 \
         make \
+	qemu-user \
         openocd \
         sudo \
         wget
+
+RUN if [ "$(uname -m)" = "x86_64" ]; then \
+        apt-get install -y gcc-aarch64-linux-gnu; \
+    fi
 
 RUN wget https://github.com/stlink-org/stlink/archive/refs/tags/v1.6.1.tar.gz && \
     tar xfz v1.6.1.tar.gz && cd stlink-1.6.1 && \

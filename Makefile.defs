@@ -14,6 +14,7 @@
 #
 _TOPDIR_ := $(shell git rev-parse --show-toplevel)
 Makefile.aarch64 := $(_TOPDIR_)/build/Makefile.aarch64
+Makefile.arm := $(_TOPDIR_)/build/Makefile.arm
 Makefile.buildenv := $(_TOPDIR_)/build/Makefile.buildenv
 Makefile.cbin := $(_TOPDIR_)/build/Makefile.cbin
 Makefile.clib := $(_TOPDIR_)/build/Makefile.clib
@@ -126,9 +127,13 @@ include $(Makefile.$(1))
 endif
 endef
 
+#
+# Macro specifying rules to build an individual C object target and wrapper macro
+# that accepts multiple C object targets and calls the worker macro
+#
 define C_OBJ_TGT
 $(1): $(subst $(OBJDIR)/,,$(1:%.o=%.c)) | $(dir $(1))
-	@if [ "$(VERBOSE)" ]; then \
+	@if [ "$(VERBOSE)" = "1" ]; then \
 		echo "Building $$< => $$@"; \
 	fi;
 	$(Q)$$(CC) $$(CFLAGS) $$(DEPFLAGS) -c $$< -o $$@
@@ -136,7 +141,24 @@ $(1): $(subst $(OBJDIR)/,,$(1:%.o=%.c)) | $(dir $(1))
 
 include $(wildcard $(patsubst %,%.d,$(basename $(1))))
 endef
-
 define add_c_obj_tgts
 $$(foreach OBJFILE,$(1),$$(eval $$(call C_OBJ_TGT,$$(OBJFILE))))
+endef
+
+#
+# Evaluate depency targets, CFLAGS and LFLAGS for deps as specified by $(DEPEND).
+# This is common eval between Makefile.{cbin,clib}.
+#  [in] - $(DEPEND), $(OBJDIR)
+# [out] - Dependency targets: $(DEP_SO) $(DEP_AR)
+#         Dependency CFLAGS: $(DEPINC)
+#         Dependency LFLAGS: $(DEP_LD)
+#
+define eval_clib_deps
+DEPDIR := $$(foreach dep,$$(DEPEND),$$(firstword $$(subst :, ,$$(dep))))
+DEPTGT := $$(foreach dep,$$(DEPEND),$$(lastword $$(subst :, ,$$(dep))))
+DEP_SO := $$(foreach dep,$$(DEPEND),$$(patsubst %,$$(OBJDIR)/%.so,$$(subst :,/lib,$$(dep))))
+DEP_AR := $$(DEP_SO:%.so=%.a)
+DEPINC := $$(DEPDIR:%=-I$$(OBJDIR)/%)
+DEP_LD := $$(DEPDIR:%=-L$$(OBJDIR)/%)
+DEP_LD += $$(DEPTGT:%=-l:lib%.a)
 endef
