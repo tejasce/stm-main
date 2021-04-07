@@ -13,10 +13,11 @@
 # always resolve.
 #
 _TOPDIR_ := $(shell git rev-parse --show-toplevel)
-Makefile.arm := $(_TOPDIR_)/build/Makefile.arm
+Makefile.aarch64 := $(_TOPDIR_)/build/Makefile.aarch64
 Makefile.buildenv := $(_TOPDIR_)/build/Makefile.buildenv
 Makefile.cbin := $(_TOPDIR_)/build/Makefile.cbin
 Makefile.clib := $(_TOPDIR_)/build/Makefile.clib
+Makefile.firmware := $(_TOPDIR_)/build/Makefile.firmware
 Makefile.stm32 := $(_TOPDIR_)/build/Makefile.stm32
 Makefile.x86_64 := $(_TOPDIR_)/build/Makefile.x86_64
 
@@ -39,6 +40,7 @@ endif
 #
 define subdirs
 PRODIR := $(1)
+OBJDIR := $(OBJDIR_PREFIX)$(ARCH)
 #
 # Undef variables before include of a "rule makefile" (e.g. Makefile.stm32)
 #
@@ -81,7 +83,7 @@ PROD_PATT := $(subst / /,/ || /,$(PROD_PATT))
 #
 #
 define inc_subdir
-include $(Makefile.$(TARGET_ARCH))
+include $(Makefile.$(ARCH))
 
 ifeq ($(TOPDIR),)
 

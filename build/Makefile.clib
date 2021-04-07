@@ -5,10 +5,7 @@ PRODUCT := $(C_LIB)
 # For top Makefile
 PRODUCTS += $(PRODUCT)
 
-OBJDIR := objs.$(TARGET_ARCH)
 PRODUCT_OBJDIR := $(OBJDIR)/$(PRODIR)
-# For top Makefile
-OBJDIRS += $(OBJDIR)
 
 LIB_SO := $(PRODUCT_OBJDIR)/lib$(C_LIB).so
 LIB_AR := $(LIB_SO:%.so=%.a)
