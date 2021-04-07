@@ -1,7 +1,7 @@
-ifdef C_LIB
+ifdef C_BIN
 
 # This file defines rules for targets: [all|clean].$(PRODUCT)
-PRODUCT := $(C_LIB)
+PRODUCT := $(C_BIN)
 # For top Makefile
 PRODUCTS += $(PRODUCT)
 
@@ -10,17 +10,15 @@ PRODUCT_OBJDIR := $(OBJDIR)/$(PRODIR)
 # For top Makefile
 OBJDIRS += $(OBJDIR)
 
-LIB_SO := $(PRODUCT_OBJDIR)/lib$(C_LIB).so
-LIB_AR := $(LIB_SO:%.so=%.a)
+BINELF := $(PRODUCT_OBJDIR)/$(C_BIN)
 
 H_INCS := $(H_DIRS:%=-I$(PRODIR)/%)
 C_OBJS := $(C_SRCS:%.c=$(OBJDIR)/$(PRODIR)/%.o)
-APIHDR := $(I_HDRS:%=$(OBJDIR)/$(PRODIR)/%)
 
 # For top Makefile
 OBJ_SUBDIRS += $(sort $(dir $(C_OBJS)))
 
-# Dependency target, includes and LD paths (e.g. path/to/libdir:<C_LIB>)
+# Dependency target, includes and LD paths (e.g. path/to/libdir:<C_BIN>)
 DEPDIR := $(foreach dep,$(DEPEND),$(firstword $(subst :, ,$(dep))))
 DEPTGT := $(foreach dep,$(DEPEND),$(lastword $(subst :, ,$(dep))))
 DEP_SO := $(foreach dep,$(DEPEND),$(patsubst %,$(OBJDIR)/%.so,$(subst :,/lib,$(dep))))
@@ -29,7 +27,7 @@ DEPINC := $(DEPDIR:%=-I$(OBJDIR)/%)
 DEP_LD := $(DEPDIR:%=-L$(OBJDIR)/%)
 DEP_LD += $(DEPTGT:%=-l:lib%.a)
 
-CFLAGS += -Wall -g -O3 -fPIC
+CFLAGS += -Wall -g -O3
 CFLAGS += $(H_INCS)
 CFLAGS += $(DEPINC)
 LFLAGS += $(DEP_LD)
@@ -37,36 +35,21 @@ LFLAGS += $(DEP_LD)
 # Add targets for each .o file
 $(eval $(call add_c_obj_tgts,$(C_OBJS)))
 
-# Build dep .so first
-$(LIB_SO): $(DEP_SO) $(C_OBJS) | $(APIHDR)
+# Build dep .a first but omit those files while linking
+$(BINELF): $(DEP_AR) $(C_OBJS)
 	@echo "Creating $@"
-	$(Q)$(CC) $(LFLAGS) -shared -o $@ $^
+	$(Q)$(CC) -o $@ $(filter %.o,$^) $(LFLAGS)
 
-# Build dep .a first
-$(LIB_AR): $(DEP_AR) $(C_OBJS) | $(APIHDR)
-	@echo "Creating $@"
-	$(Q)$(AR) -c -r -s -o $@ $^
-
-# Create symllink to each include header in target obj directory
-$(sort $(dir $(APIHDR))):
-	$(Q)mkdir -p $@
-define HDR_SYMLINK_TGT
-$(1): $(subst $(OBJDIR)/,,$(1)) | $(dir $(1))
-	$(Q)ln -sf $(abspath $$<) $(abspath $$@)
-endef
-$(foreach hdr,$(APIHDR),$(eval $(call HDR_SYMLINK_TGT,$(hdr))))
-
-all.$(PRODUCT): $(LIB_SO) $(LIB_AR)
+all.$(PRODUCT): $(BINELF)
 
 clean.$(PRODUCT):
 	@echo "Removing $(PRODUCT_OBJDIR)"
 	$(Q)rm -rf $(PRODUCT_OBJDIR)
 
 # Preserve target specific values of [applicable] variables
-$(LIB_SO) $(LIB_AR):: CC := $(CC)
-$(LIB_SO) $(LIB_AR):: AR := $(AR)
-$(LIB_SO) $(LIB_AR):: CFLAGS := $(CFLAGS)
-$(LIB_SO) $(LIB_AR):: LFLAGS := $(LFLAGS)
+$(BINELF):: CC := $(CC)
+$(BINELF):: CFLAGS := $(CFLAGS)
+$(BINELF):: LFLAGS := $(LFLAGS)
 clean.$(PRODUCT):: PRODUCT_OBJDIR := $(PRODUCT_OBJDIR)
 
-endif  # define C_LIB
+endif  # define C_BIN
