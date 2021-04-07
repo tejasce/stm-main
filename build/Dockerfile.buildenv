@@ -7,6 +7,7 @@ RUN apt-get update && \
         binutils-arm-none-eabi \
         cmake \
         docker.io \
+	gcc-aarch64-linux-gnu \
         gcc-arm-none-eabi \
         libusb-1.0 \
         make \

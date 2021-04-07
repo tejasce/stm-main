@@ -1,17 +1,14 @@
 ifdef STM32_ELF
 
-# Override to use arm-none-eabi-gcc
-include $(Makefile.arm)
+# Override to use arm-none-eabi-gcc and, consequently, $(OBJDIR) location
+include $(Makefile.firmware)
+OBJDIR := $(OBJDIR_PREFIX)firmware
 
 # This file defines rules for targets: [all|clean].$(PRODUCT)
 PRODUCT := $(STM32_ELF)
 # For top Makefile
 PRODUCTS += $(PRODUCT)
-
-OBJDIR := objs.arm
 PRODUCT_OBJDIR := $(OBJDIR)/$(PRODIR)
-# For top Makefile
-OBJDIRS += $(OBJDIR)
 
 ELF := $(PRODUCT_OBJDIR)/$(STM32_ELF).elf
 BIN := $(ELF:%.elf=%.bin)

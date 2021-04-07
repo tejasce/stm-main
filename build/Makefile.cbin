@@ -5,10 +5,7 @@ PRODUCT := $(C_BIN)
 # For top Makefile
 PRODUCTS += $(PRODUCT)
 
-OBJDIR := objs.$(TARGET_ARCH)
 PRODUCT_OBJDIR := $(OBJDIR)/$(PRODIR)
-# For top Makefile
-OBJDIRS += $(OBJDIR)
 
 BINELF := $(PRODUCT_OBJDIR)/$(C_BIN)
 

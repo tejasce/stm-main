@@ -1,0 +1,4 @@
+CROSS_COMPILE_PREFIX := /usr/bin/arm-none-eabi-
+CC := $(CROSS_COMPILE_PREFIX)gcc
+AR := $(CROSS_COMPILE_PREFIX)ar
+OBJCOPY := $(CROSS_COMPILE_PREFIX)objcopy

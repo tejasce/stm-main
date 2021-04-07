@@ -6,12 +6,21 @@ ifeq ($(TOPDIR),)
 $(error "Not a git repository.")
 endif
 TARGET_ARCH := $(shell uname -m)
+SUPPORTED_ARCHS := aarch64 x86_64
+OBJDIR_PREFIX := objs.
+
+#
+# Validate cross-compile arch when specified from cmdline
+#
+ARCH ?= $(TARGET_ARCH)
+ifeq ($(filter $(ARCH),$(SUPPORTED_ARCHS)),)
+$(error Error: Unsupported ARCH: "$(ARCH)" (Supported: $(SUPPORTED_ARCHS) | Default: $(TARGET_ARCH)))
+endif
 
 #
 # Variables populated by makesfiles at each level that includes Makefile.<rule>
 #
 PRODUCTS :=
-OBJDIRS :=
 OBJ_SUBDIRS :=
 
 #
@@ -33,7 +42,7 @@ $(OBJ_SUBDIRS):
 #
 all: $(patsubst %,all.%,$(PRODUCTS))
 clean: $(patsubst %,clean.%,$(PRODUCTS))
-	@rm -rf $(sort $(OBJDIRS))
+	$(Q)rm -rf $(OBJDIR_PREFIX)*
 
 .DEFAULT_GOAL := all
 
