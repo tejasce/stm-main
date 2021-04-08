@@ -4,11 +4,13 @@ C_LIB := freertos
 
 # "includes"
 H_DIRS := $(shell find $(THIS_DIR) -name "*.h" -exec dirname {} \+ 2>/dev/null | uniq | sed "s|$(THIS_DIR)||")
+H_DIRS += config
 
 # "srcs"
 C_SRCS := croutine.c list.c queue.c event_groups.c timers.c tasks.c stream_buffer.c portable/GCC/ARM_CM4F/port.c portable/MemMang/heap_1.c
+
 # "hdrs"
-I_HDRS := $(shell find $(THIS_DIR)/include -name "*.h" 2>/dev/null | uniq | sed "s|$(THIS_DIR)||")
+I_HDRS := $(shell find $(THIS_DIR)/include -name "*.h" 2>/dev/null | uniq | sed "s|$(THIS_DIR)/||")
 
 # "deps"
 # no external dependency (optional. stating it as demo)
@@ -18,6 +20,9 @@ DEPEND :=
 STRIP_INC_PREFIX := include
 # include_prefix
 INC_PREFIX := freertos
+
+CFLAGS += -mthumb-interwork -mfpu=fpv4-sp-d16 -mfloat-abi=softfp -std=gnu90 -ffunction-sections -fdata-sections
+CFLAGS += -mcpu=cortex-m4 -mlittle-endian -mthumb -Os -ggdb
 
 include Makefile.defs
 

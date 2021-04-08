@@ -8,3 +8,9 @@ $ find firmware/libs/FreeRTOS/portable -not \( -name portable -o -name GCC -o -n
 $ find firmware/libs/FreeRTOS/portable/GCC -type d -not \( -name GCC -o -name ARM_CM4F -o -name ARM_CM7 \) -maxdepth 1 -exec rm -rf {} \+
 $ rm -rf firmware/libs/FreeRTOS/.github
 ```
+
+* Download a `FreeRTOSConfig.h` for building purpose. This will be fine-tuned more later. Borrowed one from [this repo](https://github.com/jakub-m/nucleo).
+```
+$ mkdir -p firmware/libs/FreeRTOS/config
+$ wget -L https://raw.githubusercontent.com/jakub-m/nucleo/master/inc/FreeRTOSConfig.h -O firmware/libs/FreeRTOS/config/FreeRTOSConfig.h
+```
