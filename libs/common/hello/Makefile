@@ -11,7 +11,10 @@ I_HDRS := inc/hello.h
 # no external dependency (optional. stating it as demo)
 DEPEND :=
 
-# TODO: support "include_prefix" and "strip_include_prefix"
+# strip_include_prefix
+STRIP_INC_PREFIX := inc
+# include_prefix
+INC_PREFIX := libhello
 
 include Makefile.defs
 $(eval $(call inc_rule,clib,$(C_LIB)))
