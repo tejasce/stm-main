@@ -12,7 +12,7 @@ LIB_AR := $(LIB_SO:%.so=%.a)
 
 H_INCS := $(H_DIRS:%=-I$(PRODIR)/%)
 C_OBJS := $(C_SRCS:%.c=$(OBJDIR)/$(PRODIR)/%.o)
-APIHDR := $(I_HDRS:%=$(OBJDIR)/$(PRODIR)/%)
+APIHDR :=
 
 # For top Makefile
 OBJ_SUBDIRS += $(sort $(dir $(C_OBJS)))
@@ -29,6 +29,26 @@ LFLAGS += $(DEP_LD)
 # Add targets for each .o file
 $(eval $(call add_c_obj_tgts,$(C_OBJS)))
 
+# Create symllink to each include header in target obj directory
+# Determine if include_prefix should be stripped and/or added
+define HDR_SYMLINK_TGT
+HDR := $(1)
+ifneq ($(STRIP_INC_PREFIX),)
+STRIP_INC_PREFIX := $$(STRIP_INC_PREFIX:%/=%)
+HDR := $$(subst $$(STRIP_INC_PREFIX)/,,$$(HDR))
+endif
+ifneq ($(INC_PREFIX),)
+INC_PREFIX := $$(INC_PREFIX:%/=%)
+HDR := $$(HDR:%=$$(INC_PREFIX)/%)
+endif
+TGT_IHDR := $$(HDR:%=$$(OBJDIR)/$$(PRODIR)/%)
+APIHDR += $$(TGT_IHDR)
+$$(TGT_IHDR): $(PRODIR)/$(1)
+	$(Q)mkdir -p $$(@D)
+	$(Q)ln -sf $(abspath $$<) $(abspath $$@)
+endef
+$(foreach hdr,$(I_HDRS),$(eval $(call HDR_SYMLINK_TGT,$(hdr))))
+
 # Build dep .so first
 $(LIB_SO): $(DEP_SO) $(C_OBJS) | $(APIHDR)
 	@echo "Creating $@"
@@ -38,15 +58,6 @@ $(LIB_SO): $(DEP_SO) $(C_OBJS) | $(APIHDR)
 $(LIB_AR): $(DEP_AR) $(C_OBJS) | $(APIHDR)
 	@echo "Creating $@"
 	$(Q)$(AR) -c -r -s -o $@ $^
-
-# Create symllink to each include header in target obj directory
-$(sort $(dir $(APIHDR))):
-	$(Q)mkdir -p $@
-define HDR_SYMLINK_TGT
-$(1): $(subst $(OBJDIR)/,,$(1)) | $(dir $(1))
-	$(Q)ln -sf $(abspath $$<) $(abspath $$@)
-endef
-$(foreach hdr,$(APIHDR),$(eval $(call HDR_SYMLINK_TGT,$(hdr))))
 
 all.$(PRODUCT): $(LIB_SO) $(LIB_AR)
 
