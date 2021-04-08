@@ -134,7 +134,7 @@ endef
 #
 define C_OBJ_TGT
 $(1): $(subst $(OBJDIR)/,,$(1:%.o=%.c)) | $(dir $(1))
-	@if [ "$(VERBOSE)" = "1" ]; then \
+	@if [ $(VERBOSE) -ge 1 ]; then \
 		echo "Building $$< => $$@"; \
 	fi;
 	$(Q)$$(CC) $$(CFLAGS) $$(DEPFLAGS) -c $$< -o $$@

@@ -1,5 +1,5 @@
 #include <stdio.h>
-#include "hello.h"
+#include "libhello/hello.h"
 
 void print_msg(const char *msg)
 {
