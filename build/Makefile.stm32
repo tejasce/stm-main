@@ -23,7 +23,7 @@ LD_SRC := $(LD_SRC:%=$(PRODIR)/%)
 # For top Makefile
 OBJ_SUBDIRS += $(sort $(dir $(C_OBJS) $(S_OBJS)))
 
-CFLAGS += -Wall -mcpu=cortex-m4 -mlittle-endian -mthumb -Os -ggdb
+CFLAGS += $(STM32_CFLAGS)
 CFLAGS += $(H_INCS)
 CFLAGS += -DSTM32F401xE
 LFLAGS += -Wl,--gc-sections -Wl,-n,--print-map,--cref,-Map,$(LD_MAP)

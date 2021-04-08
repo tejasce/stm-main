@@ -26,6 +26,7 @@ Makefile.x86_64 := $(_TOPDIR_)/build/Makefile.x86_64
 # Common constants
 #
 DEPFLAGS = -MT $@ -MMD -MP -MF $*.Td
+STM32_CFLAGS := -mcpu=cortex-m4 -mlittle-endian -mthumb -Os -ggdb
 
 #
 # Helper command line variable for build debugging
