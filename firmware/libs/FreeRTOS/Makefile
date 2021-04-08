@@ -21,8 +21,8 @@ STRIP_INC_PREFIX := include
 # include_prefix
 INC_PREFIX := freertos
 
+CFLAGS += $(STM32_CFLAGS)
 CFLAGS += -mthumb-interwork -mfpu=fpv4-sp-d16 -mfloat-abi=softfp -std=gnu90 -ffunction-sections -fdata-sections
-CFLAGS += -mcpu=cortex-m4 -mlittle-endian -mthumb -Os -ggdb
 
 include Makefile.defs
 
