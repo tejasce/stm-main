@@ -1,7 +1,7 @@
 C_LIB := hello
 
 # "includes"
-H_DIRS := inc
+H_DIRS :=
 # "srcs"
 C_SRCS := src/hello.c
 # "hdrs"

@@ -21,7 +21,7 @@ $(error Error: Unsupported ARCH: "$(ARCH)" (Supported: $(SUPPORTED_ARCHS) | Defa
 endif
 
 #
-# Variables populated by makesfiles at each level that includes Makefile.<rule>
+# Variables populated by makefiles at each level that includes Makefile.<rule>
 #
 PRODUCTS :=
 OBJ_SUBDIRS :=
@@ -51,6 +51,7 @@ clean: $(patsubst %,clean.%,$(PRODUCTS))
 # Wrapper useful "clean" targets
 #
 cleanall:
+	@echo "Removing $(OBJDIR_PREFIX)*"
 	$(Q)rm -rf $(OBJDIR_PREFIX)*
 
 clobber: cleanall

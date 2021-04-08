@@ -21,6 +21,7 @@ OBJ_SUBDIRS += $(sort $(dir $(C_OBJS)))
 $(eval $(call eval_clib_deps))
 
 CFLAGS += -Wall -g -O3 -fPIC
+CFLAGS += -I$(PRODUCT_OBJDIR)
 CFLAGS += $(H_INCS)
 CFLAGS += $(DEPINC)
 LFLAGS += -shared
@@ -50,14 +51,14 @@ endef
 $(foreach hdr,$(I_HDRS),$(eval $(call HDR_SYMLINK_TGT,$(hdr))))
 
 # Build dep .so first
-$(LIB_SO): $(DEP_SO) $(C_OBJS) | $(APIHDR)
+$(LIB_SO): $(DEP_SO) $(APIHDR) $(C_OBJS)
 	@echo "Creating $@"
-	$(Q)$(CC) $(LFLAGS) -o $@ $^
+	$(Q)$(CC) $(LFLAGS) -o $@ $(filter-out %.h,$^)
 
 # Build dep .a first
-$(LIB_AR): $(DEP_AR) $(C_OBJS) | $(APIHDR)
+$(LIB_AR): $(DEP_AR) $(APIHDR) $(C_OBJS)
 	@echo "Creating $@"
-	$(Q)$(AR) -c -r -s -o $@ $^
+	$(Q)$(AR) -c -r -s -o $@ $(filter-out %.h,$^)
 
 all.$(PRODUCT): $(LIB_SO) $(LIB_AR)
 
