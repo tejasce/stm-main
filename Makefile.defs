@@ -13,14 +13,11 @@
 # always resolve.
 #
 _TOPDIR_ := $(shell git rev-parse --show-toplevel)
-Makefile.aarch64 := $(_TOPDIR_)/build/Makefile.aarch64
-Makefile.arm := $(_TOPDIR_)/build/Makefile.arm
 Makefile.buildenv := $(_TOPDIR_)/build/Makefile.buildenv
 Makefile.cbin := $(_TOPDIR_)/build/Makefile.cbin
 Makefile.clib := $(_TOPDIR_)/build/Makefile.clib
-Makefile.firmware := $(_TOPDIR_)/build/Makefile.firmware
 Makefile.stm32 := $(_TOPDIR_)/build/Makefile.stm32
-Makefile.x86_64 := $(_TOPDIR_)/build/Makefile.x86_64
+Makefile.toolchain := $(_TOPDIR_)/build/Makefile.toolchain
 
 #
 # Common constants
@@ -31,6 +28,7 @@ STM32_CFLAGS := -mcpu=cortex-m4 -mlittle-endian -mthumb -Os -ggdb
 #
 # Helper command line variable for build debugging
 #
+VERBOSE ?= 0
 ifeq ($(VERBOSE),2)
 Q :=
 else
@@ -74,6 +72,10 @@ ALL_RULES := STM32_ELF C_LIB C_BIN
 PROD_PATT := $(ALL_RULES:%=/^%/)
 PROD_PATT := $(subst / /,/ || /,$(PROD_PATT))
 
+#
+# Import toolchain include macro
+#
+include $(Makefile.toolchain)
 
 #
 # Wrapper macro to "subdirs" macro. Depending upon which directory "$(MAKE)"
@@ -85,7 +87,7 @@ PROD_PATT := $(subst / /,/ || /,$(PROD_PATT))
 #
 #
 define inc_subdir
-include $(Makefile.$(ARCH))
+$$(eval $$(call inc_toolchain,$$(ARCH)))
 
 ifeq ($(TOPDIR),)
 
@@ -134,7 +136,7 @@ endef
 #
 define C_OBJ_TGT
 $(1): $(subst $(OBJDIR)/,,$(1:%.o=%.c)) | $(dir $(1))
-	@if [ $(VERBOSE) -ge 1 ]; then \
+	@if [ "$(VERBOSE)" -ge "1" ]; then \
 		echo "Building $$< => $$@"; \
 	fi;
 	$(Q)$$(CC) $$(CFLAGS) $$(DEPFLAGS) -c $$< -o $$@

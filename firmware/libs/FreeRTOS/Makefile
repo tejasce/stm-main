@@ -26,6 +26,5 @@ CFLAGS += -mthumb-interwork -mfpu=fpv4-sp-d16 -mfloat-abi=softfp -std=gnu90 -ffu
 include Makefile.defs
 
 # Override to use arm-none-eabi-gcc and, consequently, $(OBJDIR) location
-include $(Makefile.firmware)
-OBJDIR := $(OBJDIR_PREFIX)firmware
+$(eval $(call inc_toolchain,firmware))
 $(eval $(call inc_rule,clib,$(C_LIB)))
