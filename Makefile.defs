@@ -148,7 +148,7 @@ endef
 
 #
 # Evaluate depency targets, CFLAGS and LFLAGS for deps as specified by $(DEPEND).
-# This is common eval between Makefile.{cbin,clib}.
+# This is common eval between Makefile.{cbin,clib,stm32}.
 #  [in] - $(DEPEND), $(OBJDIR)
 # [out] - Dependency targets: $(DEP_SO) $(DEP_AR)
 #         Dependency CFLAGS: $(DEPINC)
