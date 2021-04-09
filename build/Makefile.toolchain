@@ -1,8 +1,10 @@
 define inc_toolchain
 TGT := $(1)
+GXX := g++
 
 ifeq ($$(TGT),firmware)
 CROSS_COMPILE_PREFIX := /usr/bin/arm-none-eabi-
+GXX := gcc
 else ifeq ($$(TARGET_ARCH),$$(TGT))
 CROSS_COMPILE_PREFIX :=
 else ifeq ($$(TGT),aarch64)
@@ -16,6 +18,7 @@ $$(error ERROR: Bogus target value '$$(TGT)')
 endif
 
 CC := $$(CROSS_COMPILE_PREFIX)gcc
+CXX := $$(CROSS_COMPILE_PREFIX)$$(GXX)
 AR := $$(CROSS_COMPILE_PREFIX)ar
 OBJCOPY := $$(CROSS_COMPILE_PREFIX)objcopy
 

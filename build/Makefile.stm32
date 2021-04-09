@@ -33,7 +33,7 @@ LFLAGS += -Wl,--gc-sections -Wl,-n,--print-map,--cref,-Map,$(LD_MAP)
 LFLAGS += $(DEP_LD)
 
 # Add targets for each .o file
-$(eval $(call add_c_obj_tgts,$(C_OBJS)))
+$(eval $(call add_c_obj_tgts,$(C_SRCS:%=$(PRODIR)/%)))
 
 define S_OBJ_TGT
 $(1): $(subst $(OBJDIR)/,,$(1:%.o=%.s)) | $(dir $(1))

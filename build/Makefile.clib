@@ -11,7 +11,8 @@ LIB_SO := $(PRODUCT_OBJDIR)/lib$(C_LIB).so
 LIB_AR := $(LIB_SO:%.so=%.a)
 
 H_INCS := $(H_DIRS:%=-I$(PRODIR)/%)
-C_OBJS := $(C_SRCS:%.c=$(OBJDIR)/$(PRODIR)/%.o)
+C_OBJS := $(patsubst %.c,$(OBJDIR)/$(PRODIR)/%.o,$(filter %.c,$(C_SRCS)))
+$(foreach cc_ext_patt,$(CC_EXTS_PATT),$(eval C_OBJS += $(patsubst $(cc_ext_patt),$(OBJDIR)/$(PRODIR)/%.o,$(filter $(cc_ext_patt),$(C_SRCS)))))
 APIHDR :=
 
 # For top Makefile
@@ -26,9 +27,10 @@ CFLAGS += $(H_INCS)
 CFLAGS += $(DEPINC)
 LFLAGS += -shared
 LFLAGS += $(DEP_LD)
+CXXFLAGS += --std=c++17
 
 # Add targets for each .o file
-$(eval $(call add_c_obj_tgts,$(C_OBJS)))
+$(eval $(call add_c_obj_tgts,$(C_SRCS:%=$(PRODIR)/%)))
 
 # Create symllink to each include header in target obj directory
 # Determine if include_prefix should be stripped and/or added
@@ -53,12 +55,12 @@ $(foreach hdr,$(I_HDRS),$(eval $(call HDR_SYMLINK_TGT,$(hdr))))
 # Build dep .so first
 $(LIB_SO): $(DEP_SO) $(APIHDR) $(C_OBJS)
 	@echo "Creating $@"
-	$(Q)$(CC) $(LFLAGS) -o $@ $(filter-out %.h,$^)
+	$(Q)$(CXX) $(LFLAGS) -o $@ $(filter-out $(CC_H_EXTS_PATT),$^)
 
 # Build dep .a first
 $(LIB_AR): $(DEP_AR) $(APIHDR) $(C_OBJS)
 	@echo "Creating $@"
-	$(Q)$(AR) -c -r -s -o $@ $(filter-out %.h,$^)
+	$(Q)$(AR) -c -r -s -o $@ $(filter-out $(CC_H_EXTS_PATT),$^)
 
 all.$(PRODUCT): $(LIB_SO) $(LIB_AR)
 
@@ -68,9 +70,11 @@ clean.$(PRODUCT):
 
 # Preserve target specific values of [applicable] variables
 $(LIB_SO) $(LIB_AR):: CC := $(CC)
+$(LIB_SO) $(LIB_AR):: CXX := $(CXX)
 $(LIB_SO) $(LIB_AR):: AR := $(AR)
 $(LIB_SO) $(LIB_AR):: CFLAGS := $(CFLAGS)
 $(LIB_SO) $(LIB_AR):: LFLAGS := $(LFLAGS)
+$(LIB_SO) $(LIB_AR):: CXXFLAGS := $(CXXFLAGS)
 clean.$(PRODUCT):: PRODUCT_OBJDIR := $(PRODUCT_OBJDIR)
 
 endif  # define C_LIB
