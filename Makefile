@@ -45,8 +45,12 @@ $(sort $(OBJ_SUBDIRS)):
 # Top-level targets that calls targets at lower levels
 #
 all: $(patsubst %,all.%,$(PRODUCTS))
-clean: $(patsubst %,clean.%,$(PRODUCTS))
+ifeq ("$(origin ARCH)","command line")
+clean:
 	$(Q)rm -rf $(OBJDIR_PREFIX)$(ARCH)
+else
+clean: $(patsubst %,clean.%,$(PRODUCTS))
+endif
 
 #
 # Wrapper useful "clean" targets
