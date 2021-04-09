@@ -5,6 +5,7 @@ TOPDIR := $(shell git rev-parse --show-toplevel 2>/dev/null)
 ifeq ($(TOPDIR),)
 $(error "Not a git repository.")
 endif
+SHELL := $(shell which bash)
 TARGET_ARCH := $(shell uname -m)
 SUPPORTED_ARCHS := $(TARGET_ARCH) arm
 ifeq ($(TARGET_ARCH),x86_64)

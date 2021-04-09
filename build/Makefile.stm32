@@ -23,10 +23,15 @@ LD_SRC := $(LD_SRC:%=$(PRODIR)/%)
 # For top Makefile
 OBJ_SUBDIRS += $(sort $(dir $(C_OBJS) $(S_OBJS)))
 
+# Dependency target, includes and LD paths (e.g. path/to/libdir:<C_LIB>)
+$(eval $(call eval_clib_deps))
+
 CFLAGS += $(STM32_CFLAGS)
 CFLAGS += $(H_INCS)
 CFLAGS += -DSTM32F401xE
+CFLAGS += $(DEPINC)
 LFLAGS += -Wl,--gc-sections -Wl,-n,--print-map,--cref,-Map,$(LD_MAP)
+LFLAGS += $(DEP_LD)
 
 # Add targets for each .o file
 $(eval $(call add_c_obj_tgts,$(C_OBJS)))
@@ -40,9 +45,10 @@ $(1): $(subst $(OBJDIR)/,,$(1:%.o=%.s)) | $(dir $(1))
 endef
 $(foreach OBJFILE,$(S_OBJS),$(eval $(call S_OBJ_TGT,$(OBJFILE))))
 
-$(ELF): $(LD_SRC) $(C_OBJS) $(S_OBJS)
+# Build dep .a first but omit those files while linking
+$(ELF): $(LD_SRC) $(DEP_AR) $(C_OBJS) $(S_OBJS)
 	@echo "Creating $@"
-	$(Q)$(CC) $(LFLAGS) -T $^ -o $@
+	$(Q)$(CC) -T $(filter %.ld,$^) $(filter %.o,$^) $(LFLAGS) -o $@
 
 $(BIN): $(ELF)
 	@echo "Creating $@"
