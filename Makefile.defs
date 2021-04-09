@@ -152,7 +152,7 @@ GCC := $$(CC)
 # Ignore CXXFLAGS for .c files
 CXXFLAGS :=
 else
-$$(error ERROR: C_OBJ_TGT() => Invalid suffix '$$(SUFFIX)')
+$$(error ERROR: Invalid C/C++ suffix '$(1)' (Supported: .c $$(CC_EXTS)))
 endif
 
 OBJFILE := $(OBJDIR)/$$(patsubst %$$(SUFFIX),%.o,$(1))
