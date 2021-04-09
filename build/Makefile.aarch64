@@ -1,8 +1,0 @@
-ifneq ($(TARGET_ARCH),aarch64)
-CROSS_COMPILE_PREFIX := /usr/bin/aarch64-linux-gnu-
-else
-CROSS_COMPILE_PREFIX :=
-endif
-CC := $(CROSS_COMPILE_PREFIX)gcc
-AR := $(CROSS_COMPILE_PREFIX)ar
-OBJCOPY := $(CROSS_COMPILE_PREFIX)objcopy

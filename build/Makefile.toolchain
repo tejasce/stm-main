@@ -1,0 +1,23 @@
+define inc_toolchain
+TGT := $(1)
+
+ifeq ($$(TGT),firmware)
+CROSS_COMPILE_PREFIX := /usr/bin/arm-none-eabi-
+else ifeq ($$(TARGET_ARCH),$$(TGT))
+CROSS_COMPILE_PREFIX :=
+else ifeq ($$(TGT),aarch64)
+CROSS_COMPILE_PREFIX := /usr/bin/aarch64-linux-gnu-
+else ifeq ($$(TGT),arm)
+CROSS_COMPILE_PREFIX := /usr/bin/arm-linux-gnueabihf-
+else ifeq ($$(TGT),x86_64)
+CROSS_COMPILE_PREFIX :=
+else
+$$(error ERROR: Bogus target value '$$(TGT)')
+endif
+
+CC := $$(CROSS_COMPILE_PREFIX)gcc
+AR := $$(CROSS_COMPILE_PREFIX)ar
+OBJCOPY := $$(CROSS_COMPILE_PREFIX)objcopy
+
+OBJDIR := $$(OBJDIR_PREFIX)$$(TGT)
+endef
