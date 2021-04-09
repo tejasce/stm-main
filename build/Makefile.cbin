@@ -10,7 +10,8 @@ PRODUCT_OBJDIR := $(OBJDIR)/$(PRODIR)
 BINELF := $(PRODUCT_OBJDIR)/$(C_BIN)
 
 H_INCS := $(H_DIRS:%=-I$(PRODIR)/%)
-C_OBJS := $(C_SRCS:%.c=$(OBJDIR)/$(PRODIR)/%.o)
+C_OBJS := $(patsubst %.c,$(OBJDIR)/$(PRODIR)/%.o,$(filter %.c,$(C_SRCS)))
+$(foreach cc_ext_patt,$(CC_EXTS_PATT),$(eval C_OBJS += $(patsubst $(cc_ext_patt),$(OBJDIR)/$(PRODIR)/%.o,$(filter $(cc_ext_patt),$(C_SRCS)))))
 
 # For top Makefile
 OBJ_SUBDIRS += $(sort $(dir $(C_OBJS)))
@@ -23,14 +24,15 @@ CFLAGS += $(H_INCS)
 CFLAGS += $(DEPINC)
 LFLAGS += -static
 LFLAGS += $(DEP_LD)
+CXXFLAGS += --std=c++17
 
 # Add targets for each .o file
-$(eval $(call add_c_obj_tgts,$(C_OBJS)))
+$(eval $(call add_c_obj_tgts,$(C_SRCS:%=$(PRODIR)/%)))
 
 # Build dep .a first but omit those files while linking
 $(BINELF): $(DEP_AR) $(C_OBJS)
 	@echo "Creating $@"
-	$(Q)$(CC) -o $@ $(filter %.o,$^) $(LFLAGS)
+	$(Q)$(CXX) -o $@ $(filter %.o,$^) $(LFLAGS)
 
 all.$(PRODUCT): $(BINELF)
 
@@ -40,8 +42,10 @@ clean.$(PRODUCT):
 
 # Preserve target specific values of [applicable] variables
 $(BINELF):: CC := $(CC)
+$(BINELF):: CXX := $(CXX)
 $(BINELF):: CFLAGS := $(CFLAGS)
 $(BINELF):: LFLAGS := $(LFLAGS)
+$(BINELF):: CXXFLAGS := $(CXXFLAGS)
 clean.$(PRODUCT):: PRODUCT_OBJDIR := $(PRODUCT_OBJDIR)
 
 endif  # define C_BIN

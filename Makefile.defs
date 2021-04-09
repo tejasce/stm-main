@@ -24,6 +24,12 @@ Makefile.toolchain := $(_TOPDIR_)/build/Makefile.toolchain
 #
 DEPFLAGS = -MT $@ -MMD -MP -MF $*.Td
 STM32_CFLAGS := -mcpu=cortex-m4 -mlittle-endian -mthumb -Os -ggdb
+# Supported C++ source and header extensions. Excludes .c because
+# that's what distinguishes a C file from C++ file
+CC_EXTS := .cpp .cc
+CC_H_EXTS := .hpp .h .hh
+CC_EXTS_PATT := $(CC_EXTS:%=\%%))
+CC_H_EXTS_PATT := $(CC_H_EXTS:%=\%%)
 
 #
 # Helper command line variable for build debugging
@@ -60,6 +66,7 @@ C_BIN :=
 PRODUCT :=
 CFLAGS :=
 LFLAGS :=
+CXXFLAGS :=
 
 include $(1)/Makefile
 endef
@@ -131,21 +138,37 @@ endif
 endef
 
 #
-# Macro specifying rules to build an individual C object target and wrapper macro
-# that accepts multiple C object targets and calls the worker macro
+# Macro specifying rules to build an individual C/C++ object target and wrapper macro
+# that accepts multiple C/C++ source files and calls the worker macro
 #
 define C_OBJ_TGT
-$(1): $(subst $(OBJDIR)/,,$(1:%.o=%.c)) | $(dir $(1))
+
+SUFFIX := $$(suffix $(1))
+
+ifeq ($$(SUFFIX),$$(filter $$(SUFFIX),$$(CC_EXTS)))
+GCC := $$(CXX)
+else ifeq ($$(SUFFIX),.c)
+GCC := $$(CC)
+# Ignore CXXFLAGS for .c files
+CXXFLAGS :=
+else
+$$(error ERROR: Invalid C/C++ suffix '$(1)' (Supported: .c $$(CC_EXTS)))
+endif
+
+OBJFILE := $(OBJDIR)/$$(patsubst %$$(SUFFIX),%.o,$(1))
+
+$$(OBJFILE):: GCC := $$(GCC)
+$$(OBJFILE): $(1) | $$(dir $$(OBJFILE))
 	@if [ "$(VERBOSE)" -ge "1" ]; then \
 		echo "Building $$< => $$@"; \
 	fi;
-	$(Q)$$(CC) $$(CFLAGS) $$(DEPFLAGS) -c $$< -o $$@
+	$(Q)$$(GCC) $$(CFLAGS) $$(CXXFLAGS) $$(DEPFLAGS) -c $$< -o $$@
 	@mv -f $$*.Td $$*.d && touch $$@
 
-include $(wildcard $(patsubst %,%.d,$(basename $(1))))
+include $$(wildcard $$(patsubst %,%.d,$$(basename $$(OBJFILE))))
 endef
 define add_c_obj_tgts
-$$(foreach OBJFILE,$(1),$$(eval $$(call C_OBJ_TGT,$$(OBJFILE))))
+$$(foreach SRCFILE,$(1),$$(eval $$(call C_OBJ_TGT,$$(SRCFILE))))
 endef
 
 #
