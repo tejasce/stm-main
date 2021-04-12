@@ -157,7 +157,9 @@ else
 $$(error ERROR: Invalid C/C++ suffix '$(1)' (Supported: .c $$(CC_EXTS)))
 endif
 
-OBJFILE := $(OBJDIR)/$$(patsubst %$$(SUFFIX),%.o,$(1))
+# Remove $(OBJDIR) prefix from "SRCFILE" (aka $(1)) [in case if it's a generated one]
+# before adding it as a prefix to "OBJFILE"
+OBJFILE := $(OBJDIR)/$$(patsubst %$$(SUFFIX),%.o,$(subst $(OBJDIR)/,,$(1)))
 
 $$(OBJFILE):: GCC := $$(GCC)
 $$(OBJFILE):: CFLAGS := $$(CFLAGS)

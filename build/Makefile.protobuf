@@ -7,36 +7,32 @@ PRODUCTS += $(PRODUCT)
 
 PRODUCT_OBJDIR := $(OBJDIR)/$(PRODIR)
 
-CC_PROTO_TGT_DIR := $(PRODUCT_OBJDIR)
-
-LIB_SO := $(CC_PROTO_TGT_DIR)/lib$(PROTO_LIB).so
+LIB_SO := $(PRODUCT_OBJDIR)/lib$(PROTO_LIB).so
 LIB_AR := $(LIB_SO:%.so=%.a)
 
-PB_CC_OBJS := $(PB_SRCS:%.proto=$(CC_PROTO_TGT_DIR)/%.pb.o)
+PB_CC_OBJS := $(PB_SRCS:%.proto=$(PRODUCT_OBJDIR)/%.pb.o)
+# For top Makefile
+OBJ_SUBDIRS += $(sort $(dir $(PB_CC_OBJS)))
 
 CFLAGS += -fPIC $(PROTOBUF_CFLAGS)
 LFLAGS += -shared $(PROTOBUF_LFLAGS)
 CXXFLAGS += --std=c++17
 
-$(CC_PROTO_TGT_DIR):
-	$(Q)mkdir -p $@
+# Add targets to generate .cc file from .proto files
+PB_CC_SRCS :=
+define pb_cc_src_tgt
 
-define pb_cc_obj_tgt
+PB_CC_FILE := $(PRODUCT_OBJDIR)/$(1:%.proto=%.pb.cc)
 
-PB_CC_FILE := $(CC_PROTO_TGT_DIR)/$(1:%.proto=%.pb.cc)
-PB_O_FILE := $$(PB_CC_FILE:%.cc=%.o)
+$$(PB_CC_FILE): $(PRODIR)/$(1) | $$(dir $$(PB_CC_FILE))
+	$(Q)$(PROTOC) -I $(PRODIR) $$^ --cpp_out=$(PRODUCT_OBJDIR)
 
-$$(PB_CC_FILE): $(PRODIR)/$(1) | $(CC_PROTO_TGT_DIR)
-	$(Q)$(PROTOC) -I $(PRODIR) $$^ --cpp_out=$(CC_PROTO_TGT_DIR)
-
-$$(PB_O_FILE):: CXX := $$(CXX)
-$$(PB_O_FILE):: CFLAGS := $$(CFLAGS)
-$$(PB_O_FILE):: CXXFLAGS := $$(CXXFLAGS)
-$$(PB_O_FILE):: CC_PROTO_TGT_DIR := $$(CC_PROTO_TGT_DIR)
-$$(PB_O_FILE): $$(PB_CC_FILE)
-	$(Q)$(CXX) $(CFLAGS) $(CXXFLAGS) -I $(CC_PROTO_TGT_DIR) -c $$^ -o $$@
+PB_CC_SRCS += $$(PB_CC_FILE)
 endef
-$(foreach pb_src,$(PB_SRCS),$(eval $(call pb_cc_obj_tgt,$(pb_src))))
+$(foreach pb_src,$(PB_SRCS),$(eval $(call pb_cc_src_tgt,$(pb_src))))
+
+# Add targets for each .o file
+$(eval $(call add_c_obj_tgts,$(PB_CC_SRCS)))
 
 # Build dep .so first
 $(LIB_SO): $(PB_CC_OBJS)
