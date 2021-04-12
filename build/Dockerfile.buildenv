@@ -4,18 +4,23 @@ FROM ubuntu:bionic
 
 RUN apt-get update && \
     apt-get install -y \
+        autoconf \
+	automake \
         binutils-arm-none-eabi \
         cmake \
+	curl \
         docker.io \
 	g++ \
 	g++-arm-linux-gnueabihf \
 	gcc-arm-linux-gnueabihf \
         gcc-arm-none-eabi \
+	libtool \
         libusb-1.0 \
         make \
-	qemu-user \
         openocd \
+	qemu-user \
         sudo \
+	unzip \
         wget
 
 RUN if [ "$(uname -m)" = "x86_64" ]; then \
@@ -26,6 +31,21 @@ RUN wget https://github.com/stlink-org/stlink/archive/refs/tags/v1.6.1.tar.gz &&
     tar xfz v1.6.1.tar.gz && cd stlink-1.6.1 && \
     make install CMAKEFLAGS="-DCMAKE_INSTALL_PREFIX:PATH=/usr" && \
     rm -rf v1.6.1.tar.gz stlink-1.6.1
+
+ENV VER=3.15.8
+RUN wget https://github.com/protocolbuffers/protobuf/releases/download/v${VER}/protobuf-cpp-${VER}.tar.gz && \
+    tar xfz protobuf-cpp-${VER}.tar.gz && cd protobuf-${VER} && \
+    ./autogen.sh && ./configure --prefix=/usr/local/$(uname -m) && \
+    make install && \
+    make distclean && \
+    ./configure --host=$(uname -m) CC=arm-linux-gnueabihf-gcc CXX=arm-linux-gnueabihf-g++ --prefix=/usr/local/arm && \
+    make install && \
+    if [ "$(uname -m)" = "x86_64" ]; then \
+        make distclean && \
+        ./configure --host=$(uname -m) CC=aarch64-linux-gnu-gcc CXX=aarch64-linux-gnu-g++ --prefix=/usr/local/aarch64 && \
+        make install; \
+    fi && \
+    cd .. && rm -rf protobuf-cpp-${VER}.tar.gz* protobuf-${VER}
 
 # Add "this" user to buildenv image
 ARG USER

@@ -16,6 +16,7 @@ _TOPDIR_ := $(shell git rev-parse --show-toplevel)
 Makefile.buildenv := $(_TOPDIR_)/build/Makefile.buildenv
 Makefile.cbin := $(_TOPDIR_)/build/Makefile.cbin
 Makefile.clib := $(_TOPDIR_)/build/Makefile.clib
+Makefile.protobuf := $(_TOPDIR_)/build/Makefile.protobuf
 Makefile.stm32 := $(_TOPDIR_)/build/Makefile.stm32
 Makefile.toolchain := $(_TOPDIR_)/build/Makefile.toolchain
 
@@ -28,8 +29,19 @@ STM32_CFLAGS := -mcpu=cortex-m4 -mlittle-endian -mthumb -Os -ggdb
 # that's what distinguishes a C file from C++ file
 CC_EXTS := .cpp .cc
 CC_H_EXTS := .hpp .h .hh
-CC_EXTS_PATT := $(CC_EXTS:%=\%%))
+CC_EXTS_PATT := $(CC_EXTS:%=\%%)
 CC_H_EXTS_PATT := $(CC_H_EXTS:%=\%%)
+# PROTOBUF ARCH dependent CFLAGS and LFLAGS
+PROTOBUF_CFLAGS := -pthread -I/usr/local/$(ARCH)/include
+PROTOBUF_LFLAGS := -L/usr/local/$(ARCH)/lib -lprotobuf -lpthread
+
+#
+# All supported rules and grep pattern to help locate
+# all the targets in a directory
+#
+ALL_RULES := STM32_ELF C_LIB C_BIN PROTO_LIB
+PROD_PATT := $(ALL_RULES:%=/^%/)
+PROD_PATT := $(subst / /,/ || /,$(PROD_PATT))
 
 #
 # Helper command line variable for build debugging
@@ -54,10 +66,7 @@ OBJDIR := $(OBJDIR_PREFIX)$(ARCH)
 #
 # Variables representing supported product build rules.
 #
-STM32_ELF :=
-C_LIB :=
-C_BIN :=
-
+$$(foreach RULE,$(ALL_RULES),$$(eval $$(RULE) := ))
 
 #
 # Rules for targets "[all|clean].$(PRODUCT)" would need their own
@@ -71,13 +80,6 @@ CXXFLAGS :=
 include $(1)/Makefile
 endef
 
-
-#
-# Enlist all supported rules to help locate all the targets in a directory
-#
-ALL_RULES := STM32_ELF C_LIB C_BIN
-PROD_PATT := $(ALL_RULES:%=/^%/)
-PROD_PATT := $(subst / /,/ || /,$(PROD_PATT))
 
 #
 # Import toolchain include macro
@@ -158,6 +160,8 @@ endif
 OBJFILE := $(OBJDIR)/$$(patsubst %$$(SUFFIX),%.o,$(1))
 
 $$(OBJFILE):: GCC := $$(GCC)
+$$(OBJFILE):: CFLAGS := $$(CFLAGS)
+$$(OBJFILE):: CXXFLAGS := $$(CXXFLAGS)
 $$(OBJFILE): $(1) | $$(dir $$(OBJFILE))
 	@if [ "$(VERBOSE)" -ge "1" ]; then \
 		echo "Building $$< => $$@"; \
