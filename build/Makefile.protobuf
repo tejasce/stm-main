@@ -1,0 +1,66 @@
+ifdef PROTO_LIB
+
+# This file defines rules for targets: [all|clean].$(PRODUCT)
+PRODUCT := $(PROTO_LIB)
+# For top Makefile
+PRODUCTS += $(PRODUCT)
+
+PRODUCT_OBJDIR := $(OBJDIR)/$(PRODIR)
+
+LIB_SO := $(PRODUCT_OBJDIR)/lib$(PROTO_LIB).so
+LIB_AR := $(LIB_SO:%.so=%.a)
+
+PB_CC_OBJS := $(PB_SRCS:%.proto=$(PRODUCT_OBJDIR)/%.pb.o)
+# For top Makefile
+OBJ_SUBDIRS += $(sort $(dir $(PB_CC_OBJS)))
+
+# Dependency target, includes and LD paths (e.g. path/to/libdir:<C_LIB>)
+$(eval $(call eval_clib_deps))
+
+CFLAGS += -fPIC $(PROTOBUF_CFLAGS)
+CFLAGS += $(DEPINC)
+LFLAGS += -shared $(PROTOBUF_LFLAGS)
+LFLAGS += $(DEP_LD)
+CXXFLAGS += --std=c++17
+
+# Add targets to generate .cc file from .proto files
+PB_CC_SRCS :=
+define pb_cc_src_tgt
+
+PB_CC_FILE := $(PRODUCT_OBJDIR)/$(1:%.proto=%.pb.cc)
+
+$$(PB_CC_FILE): $(PRODIR)/$(1) | $$(dir $$(PB_CC_FILE))
+	$(Q)$(PROTOC) -I $(PRODIR) $$^ --cpp_out=$(PRODUCT_OBJDIR)
+
+PB_CC_SRCS += $$(PB_CC_FILE)
+endef
+$(foreach pb_src,$(PB_SRCS),$(eval $(call pb_cc_src_tgt,$(pb_src))))
+
+# Add targets for each .o file
+$(eval $(call add_c_obj_tgts,$(PB_CC_SRCS)))
+
+# Build dep .so first
+$(LIB_SO): $(DEP_SO) $(PB_CC_OBJS)
+	@echo "Creating $@"
+	$(Q)$(CXX) $(LFLAGS) -o $@ $(filter-out $(CC_H_EXTS_PATT),$^)
+
+# Build dep .a first
+$(LIB_AR): $(DEP_AR) $(PB_CC_OBJS)
+	@echo "Creating $@"
+	$(Q)$(AR) -c -r -s -o $@ $(filter-out $(CC_H_EXTS_PATT),$^)
+
+all.$(PRODUCT): $(LIB_SO) $(LIB_AR)
+
+clean.$(PRODUCT):
+	@echo "Removing $(PRODUCT_OBJDIR)"
+	$(Q)rm -rf $(PRODUCT_OBJDIR)
+
+# Preserve target specific values of [applicable] variables
+$(LIB_SO) $(LIB_AR):: CXX := $(CXX)
+$(LIB_SO) $(LIB_AR):: AR := $(AR)
+$(LIB_SO) $(LIB_AR):: CFLAGS := $(CFLAGS)
+$(LIB_SO) $(LIB_AR):: LFLAGS := $(LFLAGS)
+$(LIB_SO) $(LIB_AR):: CXXFLAGS := $(CXXFLAGS)
+clean.$(PRODUCT):: PRODUCT_OBJDIR := $(PRODUCT_OBJDIR)
+
+endif

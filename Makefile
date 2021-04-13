@@ -38,7 +38,7 @@ $(eval $(call inc_subdir,$(THIS_DIR),$(SUBDIRS)))
 #
 # Common targets (after defining rules for targets at each level)
 #
-$(OBJ_SUBDIRS):
+$(sort $(OBJ_SUBDIRS)):
 	@mkdir -p $@
 
 #
