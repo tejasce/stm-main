@@ -53,28 +53,23 @@ endef
 $(foreach hdr,$(I_HDRS),$(eval $(call HDR_SYMLINK_TGT,$(hdr))))
 
 # Build dep .so first
+$(LIB_SO):: CXX := $(CXX)
+$(LIB_SO):: LFLAGS := $(LFLAGS)
 $(LIB_SO): $(DEP_SO) $(APIHDR) $(C_OBJS)
 	@echo "Creating $@"
 	$(Q)$(CXX) $(LFLAGS) -o $@ $(filter-out $(CC_H_EXTS_PATT),$^)
 
 # Build dep .a first
+$(LIB_AR):: AR := $(AR)
 $(LIB_AR): $(DEP_AR) $(APIHDR) $(C_OBJS)
 	@echo "Creating $@"
 	$(Q)$(AR) -c -r -s -o $@ $(filter-out $(CC_H_EXTS_PATT),$^)
 
 all.$(PRODUCT): $(LIB_SO) $(LIB_AR)
 
+clean.$(PRODUCT):: PRODUCT_OBJDIR := $(PRODUCT_OBJDIR)
 clean.$(PRODUCT):
 	@echo "Removing $(PRODUCT_OBJDIR)"
 	$(Q)rm -rf $(PRODUCT_OBJDIR)
-
-# Preserve target specific values of [applicable] variables
-$(LIB_SO) $(LIB_AR):: CC := $(CC)
-$(LIB_SO) $(LIB_AR):: CXX := $(CXX)
-$(LIB_SO) $(LIB_AR):: AR := $(AR)
-$(LIB_SO) $(LIB_AR):: CFLAGS := $(CFLAGS)
-$(LIB_SO) $(LIB_AR):: LFLAGS := $(LFLAGS)
-$(LIB_SO) $(LIB_AR):: CXXFLAGS := $(CXXFLAGS)
-clean.$(PRODUCT):: PRODUCT_OBJDIR := $(PRODUCT_OBJDIR)
 
 endif  # define C_LIB

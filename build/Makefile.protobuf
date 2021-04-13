@@ -26,7 +26,6 @@ CXXFLAGS += --std=c++17
 # Add targets to generate .cc file from .proto files
 PB_CC_SRCS :=
 define pb_cc_src_tgt
-
 PB_CC_FILE := $(PRODUCT_OBJDIR)/$(1:%.proto=%.pb.cc)
 
 $$(PB_CC_FILE): $(PRODIR)/$(1) | $$(dir $$(PB_CC_FILE))
@@ -40,27 +39,23 @@ $(foreach pb_src,$(PB_SRCS),$(eval $(call pb_cc_src_tgt,$(pb_src))))
 $(eval $(call add_c_obj_tgts,$(PB_CC_SRCS)))
 
 # Build dep .so first
+$(LIB_SO):: CXX := $(CXX)
+$(LIB_SO):: LFLAGS := $(LFLAGS)
 $(LIB_SO): $(DEP_SO) $(PB_CC_OBJS)
 	@echo "Creating $@"
 	$(Q)$(CXX) $(LFLAGS) -o $@ $(filter-out $(CC_H_EXTS_PATT),$^)
 
 # Build dep .a first
+$(LIB_AR): AR := $(AR)
 $(LIB_AR): $(DEP_AR) $(PB_CC_OBJS)
 	@echo "Creating $@"
 	$(Q)$(AR) -c -r -s -o $@ $(filter-out $(CC_H_EXTS_PATT),$^)
 
 all.$(PRODUCT): $(LIB_SO) $(LIB_AR)
 
+clean.$(PRODUCT):: PRODUCT_OBJDIR := $(PRODUCT_OBJDIR)
 clean.$(PRODUCT):
 	@echo "Removing $(PRODUCT_OBJDIR)"
 	$(Q)rm -rf $(PRODUCT_OBJDIR)
-
-# Preserve target specific values of [applicable] variables
-$(LIB_SO) $(LIB_AR):: CXX := $(CXX)
-$(LIB_SO) $(LIB_AR):: AR := $(AR)
-$(LIB_SO) $(LIB_AR):: CFLAGS := $(CFLAGS)
-$(LIB_SO) $(LIB_AR):: LFLAGS := $(LFLAGS)
-$(LIB_SO) $(LIB_AR):: CXXFLAGS := $(CXXFLAGS)
-clean.$(PRODUCT):: PRODUCT_OBJDIR := $(PRODUCT_OBJDIR)
 
 endif
