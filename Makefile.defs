@@ -44,6 +44,25 @@ PROD_PATT := $(ALL_RULES:%=/^%/)
 PROD_PATT := $(subst / /,/ || /,$(PROD_PATT))
 
 #
+# Enumerate name of attributes for each rule to undef them before inclusion
+# of Makefile.<rule> for proper init state for the new "PRODUCT"
+#
+COMMON_ATTRS := PRODUCT
+COMMON_C_ATTRS := CFLAGS CXXFLAGS LFLAGS H_DIRS C_SRCS DEPEND
+STM32_ELF_ATTRS := S_SRCS LD_SRC $(COMMON_C_ATTRS) $(COMMON_ATTRS)
+C_LIB_ATTRS := I_HDRS STRIP_INC_PREFIX INC_PREFIX $(COMMON_C_ATTRS) $(COMMON_ATTRS)
+C_BIN_ATTRS := $(COMMON_C_ATTRS) $(COMMON_ATTRS)
+PROTO_LIB_ATTRS := PB_SRCS DEPEND
+ALL_ATTRS := $(sort $(foreach rule,$(ALL_RULES),$($(rule)_ATTRS)))
+
+
+#
+# Import toolchain include macro
+#
+include $(Makefile.toolchain)
+
+
+#
 # Helper command line variable for build debugging
 #
 VERBOSE ?= 0
@@ -53,38 +72,33 @@ else
 Q := @
 endif
 
+
 #
 # Macro to include a sub-directory
 #
 define subdirs
 PRODIR := $(1)
 OBJDIR := $(OBJDIR_PREFIX)$(ARCH)
-#
-# Undef variables before include of a "rule makefile" (e.g. Makefile.stm32)
-#
 
 #
-# Variables representing supported product build rules.
+# Set toolchain for the subdir and the ones below it. This can be overridden by
+# each individual directory
+#
+$$(eval $$(call inc_toolchain,$$(ARCH)))
+
+#
+# Variables representing supported product build rules. Reset for the subdir
 #
 $$(foreach RULE,$(ALL_RULES),$$(eval $$(RULE) := ))
 
 #
-# Rules for targets "[all|clean].$(PRODUCT)" would need their own
-# copy of following variables.
+# Clean the slate: reset attributes for all rules
 #
-PRODUCT :=
-CFLAGS :=
-LFLAGS :=
-CXXFLAGS :=
+$$(foreach ATTR,$(ALL_ATTRS),$$(eval $$(ATTR) := ))
 
 include $(1)/Makefile
 endef
 
-
-#
-# Import toolchain include macro
-#
-include $(Makefile.toolchain)
 
 #
 # Wrapper macro to "subdirs" macro. Depending upon which directory "$(MAKE)"
@@ -96,8 +110,6 @@ include $(Makefile.toolchain)
 #
 #
 define inc_subdir
-$$(eval $$(call inc_toolchain,$$(ARCH)))
-
 ifeq ($(TOPDIR),)
 
 ifeq ($(MAKECMDGOALS),)
@@ -118,6 +130,7 @@ $$(foreach SUBDIR,$(2:%=$(1)%),$$(eval $$(call subdirs,$$(SUBDIR))))
 endif
 endef
 
+
 #
 # Wrapper macro to include "Makefile.<rule>".
 #
@@ -137,7 +150,18 @@ $$(TARGETS):
 else
 include $(Makefile.$(1))
 endif
+
+#
+# Clean the slate: reset attributes for all rules
+#
+$$(foreach ATTR,$(ALL_ATTRS),$$(eval $$(ATTR) := ))
+
+#
+# Reset back to original toolchain
+#
+$$(eval $$(call inc_toolchain,$$(ARCH)))
 endef
+
 
 #
 # Macro specifying rules to build an individual C/C++ object target and wrapper macro
@@ -176,6 +200,7 @@ endef
 define add_c_obj_tgts
 $$(foreach SRCFILE,$(1),$$(eval $$(call C_OBJ_TGT,$$(SRCFILE))))
 endef
+
 
 #
 # Evaluate depency targets, CFLAGS and LFLAGS for deps as specified by $(DEPEND).

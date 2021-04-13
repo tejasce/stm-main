@@ -36,6 +36,8 @@ LFLAGS += $(DEP_LD)
 $(eval $(call add_c_obj_tgts,$(C_SRCS:%=$(PRODIR)/%)))
 
 define S_OBJ_TGT
+$(1):: CC := $$(CC)
+$(1):: CFLAGS := $$(CFLAGS)
 $(1): $(subst $(OBJDIR)/,,$(1:%.o=%.s)) | $(dir $(1))
 	@if [ "$(VERBOSE)" ]; then \
 		echo "Building $$< => $$@"; \
@@ -45,29 +47,27 @@ endef
 $(foreach OBJFILE,$(S_OBJS),$(eval $(call S_OBJ_TGT,$(OBJFILE))))
 
 # Build dep .a first but omit those files while linking
+$(ELF):: CC := $(CC)
+$(ELF):: LFLAGS := $(LFLAGS)
 $(ELF): $(LD_SRC) $(DEP_AR) $(C_OBJS) $(S_OBJS)
 	@echo "Creating $@"
 	$(Q)$(CC) -T $(filter %.ld,$^) $(filter %.o,$^) $(LFLAGS) -o $@
 
+$(BIN):: OBJCOPY := $(OBJCOPY)
 $(BIN): $(ELF)
 	@echo "Creating $@"
 	$(Q)$(OBJCOPY) -Obinary $^ $@
 
+$(HEX):: OBJCOPY := $(OBJCOPY)
 $(HEX): $(ELF)
 	@echo "Creating $@"
 	$(Q)$(OBJCOPY) -Oihex $^ $@
 
 all.$(PRODUCT): $(ELF) $(BIN) $(HEX)
 
+clean.$(PRODUCT):: PRODUCT_OBJDIR := $(PRODUCT_OBJDIR)
 clean.$(PRODUCT):
 	@echo "Removing $(PRODUCT_OBJDIR)"
 	$(Q)rm -rf $(PRODUCT_OBJDIR)
-
-# Preserve target specific values of [applicable] variables
-$(ELF):: CC := $(CC)
-$(ELF):: CFLAGS := $(CFLAGS)
-$(ELF):: LFLAGS := $(LFLAGS)
-$(HEX) $(BIN):: OBJCOPY := $(OBJCOPY)
-clean.$(PRODUCT):: PRODUCT_OBJDIR := $(PRODUCT_OBJDIR)
 
 endif  # define STM32_ELF

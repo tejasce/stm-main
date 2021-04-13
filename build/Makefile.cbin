@@ -30,22 +30,17 @@ CXXFLAGS += --std=c++17
 $(eval $(call add_c_obj_tgts,$(C_SRCS:%=$(PRODIR)/%)))
 
 # Build dep .a first but omit those files while linking
+$(BINELF):: CXX := $(CXX)
+$(BINELF):: LFLAGS := $(LFLAGS)
 $(BINELF): $(DEP_AR) $(C_OBJS)
 	@echo "Creating $@"
 	$(Q)$(CXX) -o $@ $(filter %.o,$^) $(LFLAGS)
 
 all.$(PRODUCT): $(BINELF)
 
+clean.$(PRODUCT):: PRODUCT_OBJDIR := $(PRODUCT_OBJDIR)
 clean.$(PRODUCT):
 	@echo "Removing $(PRODUCT_OBJDIR)"
 	$(Q)rm -rf $(PRODUCT_OBJDIR)
-
-# Preserve target specific values of [applicable] variables
-$(BINELF):: CC := $(CC)
-$(BINELF):: CXX := $(CXX)
-$(BINELF):: CFLAGS := $(CFLAGS)
-$(BINELF):: LFLAGS := $(LFLAGS)
-$(BINELF):: CXXFLAGS := $(CXXFLAGS)
-clean.$(PRODUCT):: PRODUCT_OBJDIR := $(PRODUCT_OBJDIR)
 
 endif  # define C_BIN
