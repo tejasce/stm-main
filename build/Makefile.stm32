@@ -20,7 +20,7 @@ S_OBJS := $(S_SRCS:%.s=$(OBJDIR)/$(PRODIR)/%.o)
 LD_SRC := $(LD_SRC:%=$(PRODIR)/%)
 
 # For top Makefile
-OBJ_SUBDIRS += $(sort $(dir $(C_OBJS) $(S_OBJS)))
+OBJ_SUBDIRS += $(sort $(dir $(C_OBJS) $(S_OBJS))) $(PRODUCT_OBJDIR)
 
 # Dependency target, includes and LD paths (e.g. path/to/libdir:<C_LIB>)
 $(eval $(call eval_clib_deps))
@@ -31,6 +31,9 @@ CFLAGS += -DSTM32F401xE
 CFLAGS += $(DEPINC)
 LFLAGS += -Wl,--gc-sections -Wl,-n,--print-map,--cref,-Map,$(LD_MAP)
 LFLAGS += $(DEP_LD)
+
+# Add targets to detect change in C flags
+$(eval $(call cflags_change_tgt,$(STM32_ELF)))
 
 # Add targets for each .o file
 $(eval $(call add_c_obj_tgts,$(C_SRCS:%=$(PRODIR)/%)))

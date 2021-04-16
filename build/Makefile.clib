@@ -16,7 +16,7 @@ $(foreach cc_ext_patt,$(CC_EXTS_PATT),$(eval C_OBJS += $(patsubst $(cc_ext_patt)
 APIHDR :=
 
 # For top Makefile
-OBJ_SUBDIRS += $(sort $(dir $(C_OBJS)))
+OBJ_SUBDIRS += $(sort $(dir $(C_OBJS))) $(PRODUCT_OBJDIR)
 
 # Dependency target, includes and LD paths (e.g. path/to/libdir:<C_LIB>)
 $(eval $(call eval_clib_deps))
@@ -28,6 +28,9 @@ CFLAGS += $(DEPINC)
 LFLAGS += -shared
 LFLAGS += $(DEP_LD)
 CXXFLAGS += --std=c++17
+
+# Add targets to detect change in C flags
+$(eval $(call cflags_change_tgt,$(C_LIB)))
 
 # Add targets for each .o file
 $(eval $(call add_c_obj_tgts,$(C_SRCS:%=$(PRODIR)/%)))
