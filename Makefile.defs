@@ -224,11 +224,11 @@ define cflags_change_tgt
 # List of flags to detect change in
 DIFF_FLAGS := CFLAGS LFLAGS CXXFLAGS
 
-METADATA_FILE := $(PRODUCT_OBJDIR)/metadata.mk
+METADATA_FILE := $(PRODUCT_OBJDIR)/metadata.$(1).mk
 METADATA_FILE_TMP := $$(METADATA_FILE:%=%.tmp)
 
-$(METADATA_FILE):: METADATA_FILE_TMP := $$(METADATA_FILE_TMP)
-$(METADATA_FILE): clean_$(METADATA_FILE_TMP)
+$$(METADATA_FILE):: METADATA_FILE_TMP := $$(METADATA_FILE_TMP)
+$$(METADATA_FILE): clean_$$(METADATA_FILE_TMP) | $(OBJ_SUBDIRS)
 	$$(foreach flag,$$(DIFF_FLAGS),$$(shell eval "echo $$(flag) := $$($$(flag)) >> $$(METADATA_FILE_TMP)"))
 	@if [ ! -f $$@ ] || ! diff $$@ $$(METADATA_FILE_TMP) >/dev/null; then \
 		[ -f $$@ ] && echo "$(1): Flags changed"; \
@@ -237,9 +237,9 @@ $(METADATA_FILE): clean_$(METADATA_FILE_TMP)
 		rm $$(METADATA_FILE_TMP); \
 	fi
 
-clean_$(METADATA_FILE_TMP):: METADATA_FILE_TMP := $$(METADATA_FILE_TMP)
-clean_$(METADATA_FILE_TMP):
+clean_$$(METADATA_FILE_TMP):: METADATA_FILE_TMP := $$(METADATA_FILE_TMP)
+clean_$$(METADATA_FILE_TMP):
 	@rm -f $$(METADATA_FILE_TMP)
 
-$(C_OBJS): $(METADATA_FILE)
+$(C_OBJS): $$(METADATA_FILE)
 endef
