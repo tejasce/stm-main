@@ -1,0 +1,23 @@
+#
+# ROS has its own build system. This makefile provies easy to use targets that
+# calls into ROS' build system to build packages
+#
+
+ROS2_DISTRO := foxy
+FOXY_WS := $(_TOPDIR_)/ros2_foxy
+
+COLCON_BUILD_ARGS += --symlink-install
+
+foxy:
+	$(Q)/bin/bash -c "source /opt/ros/$(ROS2_DISTRO)/setup.bash && cd $(FOXY_WS) && colcon build $(COLCON_BUILD_ARGS)"
+
+clean.foxy:
+	$(Q)rm -rf $(FOXY_WS)/{build,install,log}
+
+help.ros:
+	@echo "ROS Targets (cross-compilation not supported)"
+	@echo "             foxy: Build ROS2 ($(ROS2_DISTRO)) packages"
+	@echo "       clean.foxy: rm -rf $(notdir $(FOXY_WS))/{build,install,log}"
+	@echo
+	@echo "Command-line overrides"
+	@echo "COLCON_BUILD_ARGS: args to be supplied with \"colcon build\" (see colcon build --help)"

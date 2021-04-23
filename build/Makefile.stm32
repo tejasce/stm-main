@@ -42,7 +42,7 @@ define S_OBJ_TGT
 $(1):: CC := $$(CC)
 $(1):: CFLAGS := $$(CFLAGS)
 $(1): $(subst $(OBJDIR)/,,$(1:%.o=%.s)) | $(dir $(1))
-	@if [ "$(VERBOSE)" ]; then \
+	@if [ "$(VERBOSE)" -ge "1" ]; then \
 		echo "Building $$< => $$@"; \
 	fi;
 	$(Q)$$(CC) $$(CFLAGS) -c $$< -o $$@

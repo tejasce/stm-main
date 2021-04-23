@@ -17,6 +17,7 @@ Makefile.buildenv := $(_TOPDIR_)/build/Makefile.buildenv
 Makefile.cbin := $(_TOPDIR_)/build/Makefile.cbin
 Makefile.clib := $(_TOPDIR_)/build/Makefile.clib
 Makefile.protobuf := $(_TOPDIR_)/build/Makefile.protobuf
+Makefile.ros := $(_TOPDIR_)/build/Makefile.ros
 Makefile.stm32 := $(_TOPDIR_)/build/Makefile.stm32
 Makefile.toolchain := $(_TOPDIR_)/build/Makefile.toolchain
 
