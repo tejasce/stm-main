@@ -6,7 +6,16 @@
 ROS2_DISTRO := foxy
 FOXY_WS := $(_TOPDIR_)/ros2_foxy
 
+# Default "colcon build" option(s)
 COLCON_BUILD_ARGS += --symlink-install
+
+# Ease-of-use command-line-args to build/skip packages
+ifdef PACKAGES
+COLCON_BUILD_ARGS += --packages-select $(PACKAGES)
+endif
+ifdef PACKAGES_SKIP
+COLCON_BUILD_ARGS += --packages-skip $(PACKAGES_SKIP)
+endif
 
 foxy:
 	$(Q)/bin/bash -c "source /opt/ros/$(ROS2_DISTRO)/setup.bash && cd $(FOXY_WS) && colcon build $(COLCON_BUILD_ARGS)"
@@ -20,4 +29,9 @@ help.ros:
 	@echo "       clean.foxy: rm -rf $(notdir $(FOXY_WS))/{build,install,log}"
 	@echo
 	@echo "Command-line overrides"
-	@echo "COLCON_BUILD_ARGS: args to be supplied with \"colcon build\" (see colcon build --help)"
+	@echo "COLCON_BUILD_ARGS: args to be supplied with \"colcon build\""
+	@echo "                   (see colcon build --help)"
+	@echo "         PACKAGES: seletively build one or more packages"
+	@echo "                   (e.g. PACKAGES=\"PKG_NAME [PKG_NAME]\")"
+	@echo "    PACKAGES_SKIP: seletively skip to build one or more package"
+	@echo "                   (e.g. PACKAGES_SKIP=\"PKG_NAME [PKG_NAME]\")"

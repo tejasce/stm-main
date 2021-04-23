@@ -84,5 +84,5 @@ help:
 	@echo "        ARCH: build for a target architecture (Supported: $(SUPPORTED_ARCHS) | Default: $(TARGET_ARCH))"
 	@echo "     VERBOSE: build verbose level (Supported: 1 2 | Default: quiet)"
 	@echo
-	@echo "To see help for other supported build systems, run:"
-	@echo "make help.ros"
+	@echo "Other [than make based] supported build systems"
+	@echo "         ROS: make help.ros"
