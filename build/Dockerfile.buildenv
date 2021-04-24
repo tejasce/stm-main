@@ -99,7 +99,9 @@ RUN curl -sSL https://raw.githubusercontent.com/ros/rosdistro/master/ros.key  -o
         libasio-dev \
         libtinyxml2-dev && \
     apt install --no-install-recommends -y \
-        libcunit1-dev
+        libcunit1-dev && \
+    apt install -y \
+        ros-foxy-turtlesim
 
 RUN rosdep update || true
 
