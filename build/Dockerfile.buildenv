@@ -1,6 +1,8 @@
 # syntax=docker/dockerfile:experimental
 
-FROM ubuntu:bionic
+FROM ubuntu:focal
+
+ARG DEBIAN_FRONTEND=noninteractive
 
 RUN apt-get update && \
     apt-get install -y \
@@ -14,8 +16,10 @@ RUN apt-get update && \
 	g++-arm-linux-gnueabihf \
 	gcc-arm-linux-gnueabihf \
         gcc-arm-none-eabi \
+        gnupg gnupg1 gnupg2 \
 	libtool \
         libusb-1.0 \
+        lsb-release \
         make \
         openocd \
 	qemu-user \
@@ -27,11 +31,13 @@ RUN if [ "$(uname -m)" = "x86_64" ]; then \
         apt-get install -y g++-aarch64-linux-gnu gcc-aarch64-linux-gnu; \
     fi
 
+# st-link
 RUN wget https://github.com/stlink-org/stlink/archive/refs/tags/v1.6.1.tar.gz && \
     tar xfz v1.6.1.tar.gz && cd stlink-1.6.1 && \
     make install CMAKEFLAGS="-DCMAKE_INSTALL_PREFIX:PATH=/usr" && \
     rm -rf v1.6.1.tar.gz stlink-1.6.1
 
+# protobuf
 ENV VER=3.15.8
 RUN wget https://github.com/protocolbuffers/protobuf/releases/download/v${VER}/protobuf-cpp-${VER}.tar.gz && \
     tar xfz protobuf-cpp-${VER}.tar.gz && cd protobuf-${VER} && \
@@ -46,6 +52,42 @@ RUN wget https://github.com/protocolbuffers/protobuf/releases/download/v${VER}/p
         make install; \
     fi && \
     cd .. && rm -rf protobuf-cpp-${VER}.tar.gz* protobuf-${VER}
+
+# ROS2
+RUN curl -sSL https://raw.githubusercontent.com/ros/rosdistro/master/ros.key  -o /usr/share/keyrings/ros-archive-keyring.gpg && \
+    echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/ros-archive-keyring.gpg] http://packages.ros.org/ros2/ubuntu $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/ros2.list > /dev/null && \
+    apt update && \
+    apt install -y ros-foxy-ros-base && \
+    apt install -y \
+        libbullet-dev \
+        python3-colcon-common-extensions \
+        python3-flake8 \
+        python3-pip \
+        python3-pytest-cov \
+        python3-rosdep \
+        python3-setuptools \
+        python3-vcstool && \
+    python3 -m pip install -U \
+        argcomplete \
+        flake8-blind-except \
+        flake8-builtins \
+        flake8-class-newline \
+        flake8-comprehensions \
+        flake8-deprecated \
+        flake8-docstrings \
+        flake8-import-order \
+        flake8-quotes \
+        pytest-repeat \
+        pytest-rerunfailures \
+        pytest && \
+    apt install --no-install-recommends -y \
+        libasio-dev \
+        libtinyxml2-dev && \
+    apt install --no-install-recommends -y \
+        libcunit1-dev
+
+RUN rosdep init && \
+    rosdep update || true
 
 # Add "this" user to buildenv image
 ARG USER

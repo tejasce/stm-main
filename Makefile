@@ -68,17 +68,21 @@ clobber: cleanall
 # Include helper makefiles
 #
 include $(Makefile.buildenv)
+include $(Makefile.ros)
 
 help:
 	@echo "Build Targets"
-	@echo "        all: build all $(ARCH) products (default)"
-	@echo "      clean: remove all previously built $(ARCH) products"
-	@echo "   cleanall: remove all products for all targets architectues"
-	@echo "    clobber: cleanall + remove cscope/ctags"
-	@echo "       help: show this message"
+	@echo "         all: build all $(ARCH) products (default)"
+	@echo "       clean: remove all previously built $(ARCH) products"
+	@echo "    cleanall: remove all products for all targets architectues"
+	@echo "     clobber: cleanall + remove cscope/ctags"
+	@echo "        help: show this message"
 	@echo
 	@$(MAKE) --no-print-directory help.buildenv
 	@echo
 	@echo "Commmand-line overrides"
-	@echo "       ARCH: build for a target architecture (Supported: $(SUPPORTED_ARCHS) | Default: $(TARGET_ARCH))"
-	@echo "    VERBOSE: build verbose level (Supported: 1 2 | Default: quiet)"
+	@echo "        ARCH: build for a target architecture (Supported: $(SUPPORTED_ARCHS) | Default: $(TARGET_ARCH))"
+	@echo "     VERBOSE: build verbose level (Supported: 1 2 | Default: quiet)"
+	@echo
+	@echo "Other [than make based] supported build systems"
+	@echo "         ROS: make help.ros"
