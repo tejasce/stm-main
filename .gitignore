@@ -11,3 +11,6 @@ objs.*/
 ros2_foxy/build
 ros2_foxy/install
 ros2_foxy/log
+ros1_noetic/build
+ros1_noetic/devel
+ros1_noetic/install
