@@ -23,6 +23,7 @@ RUN apt-get update && \
         make \
         openocd \
 	qemu-user \
+        qt5-default qtcreator \
         sudo \
 	unzip \
         wget
