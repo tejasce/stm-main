@@ -8,3 +8,6 @@ tags
 
 # dirs
 objs.*/
+ros2_foxy/build
+ros2_foxy/install
+ros2_foxy/log
