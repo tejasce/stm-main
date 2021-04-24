@@ -42,16 +42,31 @@ ENV VER=3.15.8
 RUN wget https://github.com/protocolbuffers/protobuf/releases/download/v${VER}/protobuf-cpp-${VER}.tar.gz && \
     tar xfz protobuf-cpp-${VER}.tar.gz && cd protobuf-${VER} && \
     ./autogen.sh && ./configure --prefix=/usr/local/$(uname -m) && \
-    make install && \
+    make -j $(nproc) install && \
     make distclean && \
     ./configure --host=$(uname -m) CC=arm-linux-gnueabihf-gcc CXX=arm-linux-gnueabihf-g++ --prefix=/usr/local/arm && \
-    make install && \
+    make -j $(nproc) install && \
     if [ "$(uname -m)" = "x86_64" ]; then \
         make distclean && \
         ./configure --host=$(uname -m) CC=aarch64-linux-gnu-gcc CXX=aarch64-linux-gnu-g++ --prefix=/usr/local/aarch64 && \
-        make install; \
+        make -j $(nproc) install; \
     fi && \
     cd .. && rm -rf protobuf-cpp-${VER}.tar.gz* protobuf-${VER}
+
+# ROS1
+RUN sh -c 'echo "deb http://packages.ros.org/ros/ubuntu $(lsb_release -sc) main" > /etc/apt/sources.list.d/ros-latest.list' && \
+    apt-key adv --keyserver 'hkp://keyserver.ubuntu.com:80' --recv-key C1CF6E31E6BADE8868B172B4F42ED6FBAB17C654 && \
+    apt-get update && \
+    apt-get install -y \
+    ros-noetic-ros-base \
+    python3-rosdep \
+    python3-rosinstall \
+    python3-rosinstall-generator \
+    python3-wstool \
+    build-essential
+
+RUN rosdep init && \
+    rosdep update || true
 
 # ROS2
 RUN curl -sSL https://raw.githubusercontent.com/ros/rosdistro/master/ros.key  -o /usr/share/keyrings/ros-archive-keyring.gpg && \
@@ -86,8 +101,7 @@ RUN curl -sSL https://raw.githubusercontent.com/ros/rosdistro/master/ros.key  -o
     apt install --no-install-recommends -y \
         libcunit1-dev
 
-RUN rosdep init && \
-    rosdep update || true
+RUN rosdep update || true
 
 # Add "this" user to buildenv image
 ARG USER

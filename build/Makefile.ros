@@ -3,8 +3,13 @@
 # calls into ROS' build system to build packages
 #
 
+ROS1_DISTRO := noetic
+NOETIC_WS := $(_TOPDIR_)/ros1_noetic
 ROS2_DISTRO := foxy
 FOXY_WS := $(_TOPDIR_)/ros2_foxy
+
+# Default "catkin build" option(s)
+CATKIN_BUILD_ARGS +=
 
 # Default "colcon build" option(s)
 COLCON_BUILD_ARGS += --symlink-install
@@ -12,23 +17,37 @@ COLCON_BUILD_ARGS += --symlink-install
 # Ease-of-use command-line-args to build/skip packages
 ifdef PACKAGES
 COLCON_BUILD_ARGS += --packages-select $(PACKAGES)
+CATKIN_BUILD_ARGS += --only-pkg-with-deps $(PACKAGES)
+else
+CATKIN_BUILD_ARGS += -DCATKIN_WHITELIST_PACKAGES=""
 endif
 ifdef PACKAGES_SKIP
 COLCON_BUILD_ARGS += --packages-skip $(PACKAGES_SKIP)
 endif
 
-foxy:
+$(ROS1_DISTRO):
+	$(Q)/bin/bash -c "source /opt/ros/$(ROS1_DISTRO)/setup.bash && cd $(NOETIC_WS) && \
+	catkin_make $(CATKIN_BUILD_ARGS)"
+
+clean.$(ROS1_DISTRO):
+	$(Q)rm -rf $(NOETIC_WS)/{build,install,devel}
+
+$(ROS2_DISTRO):
 	$(Q)/bin/bash -c "source /opt/ros/$(ROS2_DISTRO)/setup.bash && cd $(FOXY_WS) && colcon build $(COLCON_BUILD_ARGS)"
 
-clean.foxy:
+clean.$(ROS2_DISTRO):
 	$(Q)rm -rf $(FOXY_WS)/{build,install,log}
 
 help.ros:
 	@echo "ROS Targets (cross-compilation not supported)"
-	@echo "             foxy: Build ROS2 ($(ROS2_DISTRO)) packages"
-	@echo "       clean.foxy: rm -rf $(notdir $(FOXY_WS))/{build,install,log}"
+	@echo "           $(ROS1_DISTRO): Build ROS2 ($(ROS1_DISTRO)) packages"
+	@echo "     clean.$(ROS1_DISTRO): rm -rf $(notdir $(NOETIC_WS))/{build,install,devel}"
+	@echo "             $(ROS2_DISTRO): Build ROS2 ($(ROS2_DISTRO)) packages"
+	@echo "       clean.$(ROS2_DISTRO): rm -rf $(notdir $(FOXY_WS))/{build,install,log}"
 	@echo
 	@echo "Command-line overrides"
+	@echo "CATKIN_BUILD_ARGS: args to be supplied with \"catkin_make\""
+	@echo "                   (see catkin_make --help)"
 	@echo "COLCON_BUILD_ARGS: args to be supplied with \"colcon build\""
 	@echo "                   (see colcon build --help)"
 	@echo "         PACKAGES: seletively build one or more packages"
