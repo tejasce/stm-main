@@ -24,13 +24,20 @@ define buildenv_image
 endef
 
 define buildenv_container
+	if [ "$$(uname -s)" = "Darwin" ]; then \
+		IP=$$(ifconfig en0 | grep inet | awk '$$1=="inet" {print $$2}'); \
+		xhost + $$IP >/dev/null; \
+		DISPLAY=$$IP:0; \
+	else \
+		DISPLAY=$(DISPLAY); \
+	fi; \
 	if [ "$(1)" = "stop" ]; then \
 		$(DOCKER_CMD) stop $(CONTAINER_NAME) >/dev/null 2>&1 || true; \
 	elif [ "$$($(DOCKER_CMD) ps --filter name=$(CONTAINER_NAME) --format "{{.Names}}")" != "$(CONTAINER_NAME)" ]; then \
 		$(DOCKER_CMD) run --name $(CONTAINER_NAME) --rm -d --privileged --net=host \
 			-u $(THIS_USER) \
-			-e USER=$(THIS_USER) -e DISPLAY=$(DISPLAY) -e BUILDENV_SHELL=true \
-			-v /tmp/.X11-unix/:/tmp/.X11-unix -v $(HOME)/.Xauthority:$(HOME)/.Xauthority -v "$(PWD):$(PWD)" -v $(DOCKER_SOCKET):$(DOCKER_SOCKET) -v /tmp:/tmp \
+			-e USER=$(THIS_USER) -e DISPLAY=$$DISPLAY -e BUILDENV_SHELL=true \
+			-v /tmp/.X11-unix:/tmp/.X11-unix -v $(HOME)/.Xauthority:$(HOME)/.Xauthority -v "$(PWD):$(PWD)" -v $(DOCKER_SOCKET):$(DOCKER_SOCKET) -v /tmp:/tmp \
 			-w $(PWD) -it $(IMAGE_NAME); \
 	fi;
 endef
