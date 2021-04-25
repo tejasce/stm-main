@@ -25,7 +25,7 @@ endef
 
 define buildenv_container
 	if [ "$$(uname -s)" = "Darwin" ]; then \
-		IP=$$(ifconfig en0 | grep inet | awk '$$1=="inet" {print $$2}'); \
+		IP=$$(ifconfig en0 | awk '$$1=="inet" {print $$2}'); \
 		xhost + $$IP >/dev/null; \
 		DISPLAY=$$IP:0; \
 	else \
