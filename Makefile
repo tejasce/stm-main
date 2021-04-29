@@ -81,8 +81,10 @@ help:
 	@$(MAKE) --no-print-directory help.buildenv
 	@echo
 	@echo "Commmand-line overrides"
-	@echo "        ARCH: build for a target architecture (Supported: $(SUPPORTED_ARCHS) | Default: $(TARGET_ARCH))"
-	@echo "     VERBOSE: build verbose level (Supported: 1 2 | Default: quiet)"
+	@echo "        ARCH: build for a target architecture"
+	@echo "              Supported: $(SUPPORTED_ARCHS) [Default: $(TARGET_ARCH)]"
+	@echo "     VERBOSE: build verbose level"
+	@echo "              Supported: 1 2 [Default: quiet]"
 	@echo
-	@echo "Other [than make based] supported build systems"
+	@echo "Other supported build systems (outside of default build system)"
 	@echo "         ROS: make help.ros"
