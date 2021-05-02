@@ -37,7 +37,7 @@ define buildenv_container
 		$(DOCKER_CMD) run --name $(CONTAINER_NAME) --rm -d --privileged --net=host \
 			-u $(THIS_USER) \
 			-e USER=$(THIS_USER) -e DISPLAY=$$DISPLAY -e BUILDENV_SHELL=true \
-			-v /tmp/.X11-unix:/tmp/.X11-unix -v $(HOME)/.Xauthority:$(HOME)/.Xauthority -v "$(PWD):$(PWD)" -v $(DOCKER_SOCKET):$(DOCKER_SOCKET) -v /tmp:/tmp \
+			-v /tmp/.X11-unix:/tmp/.X11-unix -v $(HOME)/.Xauthority:$(HOME)/.Xauthority -v "$(PWD):$(PWD)" -v $(DOCKER_SOCKET):$(DOCKER_SOCKET) -v /dev:/dev -v /tmp:/tmp \
 			-w $(PWD) -it $(IMAGE_NAME); \
 	fi;
 endef
