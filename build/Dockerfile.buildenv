@@ -160,7 +160,10 @@ RUN if [ -n "$DOCKER_GID" ]; then \
     fi && \
     usermod -aG docker $USER
 
+# Settings after $USER is added
 RUN chown -R $USER:$GROUP ${ZEPHYR_HOME}
+
+# Env variables for build to work as expected
 ENV ZEPHYR_BASE=${ZEPHYR_HOME}/zephyr
 ENV ZEPHYR_TOOLCHAIN_VARIANT=cross-compile
 ENV CROSS_COMPILE=/usr/bin/arm-none-eabi-
