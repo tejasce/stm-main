@@ -46,7 +46,7 @@ define buildenv_shell
 	if [ "$(BUILDENV_SHELL)" = "true" ]; then \
 		echo "Already inside buildenv-shell."; \
 	else \
-		$(DOCKER_CMD) exec -it $(CONTAINER_NAME) /bin/bash; \
+		$(DOCKER_CMD) exec -it $(CONTAINER_NAME) /bin/bash || true; \
 	fi;
 endef
 
