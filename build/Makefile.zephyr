@@ -1,0 +1,38 @@
+ifdef ZEPHYR_APP
+
+# Override to use appropriate $(OBJDIR) location (toolchain is already selected by buildenv)
+$(eval $(call inc_toolchain,firmware))
+
+# This file defines rules for targets: [all|clean].$(PRODUCT)
+PRODUCT := $(ZEPHYR_APP)
+# For top Makefile
+PRODUCTS += $(PRODUCT)
+PRODUCT_OBJDIR := $(OBJDIR)/$(PRODIR)
+
+# For top Makefile
+OBJ_SUBDIRS += $(PRODUCT_OBJDIR)
+
+ELF := $(PRODUCT_OBJDIR)/zephyr/zephyr.elf
+BIN := $(ELF:%.elf=%.bin)
+HEX := $(ELF:%.elf=%.hex)
+LD_MAP := $(ELF:%.elf=%.map)
+
+.PHONY: $(ELF) $(BIN) $(HEX) $(LD_MAP)
+$(ELF) $(BIN) $(HEX) $(LD_MAP):: BOARD := $(BOARD)
+$(ELF) $(BIN) $(HEX) $(LD_MAP):: PRODIR := $(PRODIR)
+$(ELF) $(BIN) $(HEX) $(LD_MAP):: PRODUCT_OBJDIR := $(PRODUCT_OBJDIR)
+$(ELF) $(BIN) $(HEX) $(LD_MAP):: BUILD_LOG := $(PRODUCT_OBJDIR)/build.log
+$(ELF) $(BIN) $(HEX) $(LD_MAP): | $(PRODUCT_OBJDIR)
+	@if [ "$(VERBOSE)" -ge "1" ]; then \
+		echo "Building $@ (LOGS: $(BUILD_LOG))"; \
+	fi;
+	$(Q)$(WEST) build $(PRODIR) -b $(BOARD) --build-dir $(realpath $(PRODUCT_OBJDIR)) > $(BUILD_LOG) 2>&1
+
+all.$(PRODUCT): $(ELF) $(BIN) $(HEX) $(LD_MAP)
+
+clean.$(PRODUCT):: PRODUCT_OBJDIR := $(PRODUCT_OBJDIR)
+clean.$(PRODUCT):
+	@echo "Removing $(PRODUCT_OBJDIR)"
+	$(Q)rm -rf $(PRODUCT_OBJDIR)
+
+endif  # ifdef ZEPHYR_APP

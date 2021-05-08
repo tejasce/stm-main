@@ -20,6 +20,7 @@ Makefile.protobuf := $(_TOPDIR_)/build/Makefile.protobuf
 Makefile.ros := $(_TOPDIR_)/build/Makefile.ros
 Makefile.stm32 := $(_TOPDIR_)/build/Makefile.stm32
 Makefile.toolchain := $(_TOPDIR_)/build/Makefile.toolchain
+Makefile.zephyr := $(_TOPDIR_)/build/Makefile.zephyr
 
 #
 # Common constants
@@ -40,7 +41,7 @@ PROTOBUF_LFLAGS := -L/usr/local/$(ARCH)/lib -lprotobuf -lpthread
 # All supported rules and grep pattern to help locate
 # all the targets in a directory
 #
-ALL_RULES := STM32_ELF C_LIB C_BIN PROTO_LIB
+ALL_RULES := STM32_ELF C_LIB C_BIN PROTO_LIB ZEPHYR_APP
 PROD_PATT := $(ALL_RULES:%=/^%/)
 PROD_PATT := $(subst / /,/ || /,$(PROD_PATT))
 
