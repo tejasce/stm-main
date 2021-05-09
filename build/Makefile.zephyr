@@ -13,23 +13,23 @@ BOARD_PRODUCT_OBJDIR := $(PRODUCT_OBJDIR)/$(BOARD)
 # For top Makefile
 OBJ_SUBDIRS += $(BOARD_PRODUCT_OBJDIR)
 
+# Location of built file. Same location also has .bin, .hex and .map files.
+# But since same instance of $(WEST) generates all, use only .elf file as target.
 ELF := $(BOARD_PRODUCT_OBJDIR)/zephyr/zephyr.elf
-BIN := $(ELF:%.elf=%.bin)
-HEX := $(ELF:%.elf=%.hex)
-LD_MAP := $(ELF:%.elf=%.map)
 
-.PHONY: $(ELF) $(BIN) $(HEX) $(LD_MAP)
-$(ELF) $(BIN) $(HEX) $(LD_MAP):: BOARD := $(BOARD)
-$(ELF) $(BIN) $(HEX) $(LD_MAP):: PRODIR := $(PRODIR)
-$(ELF) $(BIN) $(HEX) $(LD_MAP):: BOARD_PRODUCT_OBJDIR := $(BOARD_PRODUCT_OBJDIR)
-$(ELF) $(BIN) $(HEX) $(LD_MAP):: BUILD_LOG := $(BOARD_PRODUCT_OBJDIR)/build.log
-$(ELF) $(BIN) $(HEX) $(LD_MAP): | $(BOARD_PRODUCT_OBJDIR)
+# Maybe this target should depend on buncha files from a zephyr app
+.PHONY: $(ELF)
+$(ELF):: BOARD := $(BOARD)
+$(ELF):: PRODIR := $(PRODIR)
+$(ELF):: BOARD_PRODUCT_OBJDIR := $(BOARD_PRODUCT_OBJDIR)
+$(ELF):: BUILD_LOG := $(BOARD_PRODUCT_OBJDIR)/build.log
+$(ELF): | $(BOARD_PRODUCT_OBJDIR)
 	@if [ "$(VERBOSE)" -ge "1" ]; then \
 		echo "Building $@ (LOGS: $(BUILD_LOG))"; \
 	fi;
 	$(Q)$(WEST) build $(PRODIR) -b $(BOARD) --build-dir $(realpath $(BOARD_PRODUCT_OBJDIR)) > $(BUILD_LOG) 2>&1
 
-all.$(PRODUCT): $(ELF) $(BIN) $(HEX) $(LD_MAP)
+all.$(PRODUCT): $(ELF)
 
 clean.$(PRODUCT):: PRODUCT_OBJDIR := $(PRODUCT_OBJDIR)
 clean.$(PRODUCT):: BOARD_PRODUCT_OBJDIR := $(BOARD_PRODUCT_OBJDIR)
