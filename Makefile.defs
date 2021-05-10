@@ -1,7 +1,8 @@
 #
 # @file: Makefile that defines absolute paths and macro definitions for
 #        the build system for the repo. A symlink to this file must
-#        exist at each directory level of this repo.
+#        exist at each directory level of this repo to allow invoking
+#        and building at any sub-directory level.
 #
 
 
@@ -20,6 +21,7 @@ Makefile.protobuf := $(_TOPDIR_)/build/Makefile.protobuf
 Makefile.ros := $(_TOPDIR_)/build/Makefile.ros
 Makefile.stm32 := $(_TOPDIR_)/build/Makefile.stm32
 Makefile.toolchain := $(_TOPDIR_)/build/Makefile.toolchain
+Makefile.zephyr := $(_TOPDIR_)/build/Makefile.zephyr
 
 #
 # Common constants
@@ -37,12 +39,9 @@ PROTOBUF_CFLAGS := -pthread -I/usr/local/$(ARCH)/include
 PROTOBUF_LFLAGS := -L/usr/local/$(ARCH)/lib -lprotobuf -lpthread
 
 #
-# All supported rules and grep pattern to help locate
-# all the targets in a directory
+# All supported rules
 #
-ALL_RULES := STM32_ELF C_LIB C_BIN PROTO_LIB
-PROD_PATT := $(ALL_RULES:%=/^%/)
-PROD_PATT := $(subst / /,/ || /,$(PROD_PATT))
+ALL_RULES := STM32_ELF C_LIB C_BIN PROTO_LIB ZEPHYR_APP
 
 #
 # Enumerate name of attributes for each rule to undef them before inclusion
@@ -50,11 +49,12 @@ PROD_PATT := $(subst / /,/ || /,$(PROD_PATT))
 #
 COMMON_ATTRS := PRODUCT
 COMMON_C_ATTRS := CFLAGS CXXFLAGS LFLAGS H_DIRS C_SRCS DEPEND
-STM32_ELF_ATTRS := S_SRCS LD_SRC $(COMMON_C_ATTRS) $(COMMON_ATTRS)
-C_LIB_ATTRS := I_HDRS STRIP_INC_PREFIX INC_PREFIX $(COMMON_C_ATTRS) $(COMMON_ATTRS)
-C_BIN_ATTRS := $(COMMON_C_ATTRS) $(COMMON_ATTRS)
+STM32_ELF_ATTRS := S_SRCS LD_SRC $(COMMON_C_ATTRS)
+C_LIB_ATTRS := I_HDRS STRIP_INC_PREFIX INC_PREFIX $(COMMON_C_ATTRS)
+C_BIN_ATTRS := $(COMMON_C_ATTRS)
 PROTO_LIB_ATTRS := PB_SRCS DEPEND
-ALL_ATTRS := $(sort $(foreach rule,$(ALL_RULES),$($(rule)_ATTRS)))
+ZEPHYR_APP_ATTRS := BOARD
+ALL_ATTRS := $(sort $(foreach rule,$(ALL_RULES),$($(rule)_ATTRS))) $(COMMON_ATTRS)
 
 
 #
@@ -104,30 +104,25 @@ endef
 #
 # Wrapper macro to "subdirs" macro. Depending upon which directory "$(MAKE)"
 # is invoked upon, this macro will either simply include subdirectories or
-# invoke appropriate targets from the $(TOPDIR).
-#
-# Initializes $(CC) for the target architecture.
-# May get overriden by a Makefile.<rule> (during $(call inc_rule,<rule>,<product>))
-#
+# recursively find all the "Makefile" from directories below and include them.
 #
 define inc_subdir
 ifeq ($(TOPDIR),)
+# This method won't honor if a subdir is present but isn't
+# enlisted in the makefile of the parent dir
+MKFILES += $(shell find $(1) -mindepth 2 -name Makefile)
 
-ifeq ($(MAKECMDGOALS),)
-TARGETS := all
-else
-TARGETS := $(MAKECMDGOALS)
+#
+# Accumulated makefiles need to be included only once;
+# use sort to enumuerate unique ones.
+#
+ifndef INC_MAKEFILE
+INC_MAKEFILE := 1
+$$(foreach makefile,$$(sort $$(MKFILES)),$$(eval include $$(makefile)))
 endif
 
-PROD_NAME := $(shell find $(1) -name Makefile -exec awk '$(PROD_PATT){print $$3}' {} \+)
-PROD_TGTS :=
-$$(foreach TGT,$$(TARGETS), $$(foreach PROD,$$(PROD_NAME),$$(eval PROD_TGTS += $$(TGT).$$(PROD))))
-
-$$(TARGETS):
-	$(Q)$(MAKE) -C $$(_TOPDIR_) --no-print-directory $$(PROD_TGTS)
 else
 $$(foreach SUBDIR,$(2:%=$(1)%),$$(eval $$(call subdirs,$$(SUBDIR))))
-
 endif
 endef
 
@@ -138,15 +133,28 @@ endef
 define inc_rule
 ifeq ($(TOPDIR),)
 
+#
+# inc_rule() may be called more than once in a Makefile and each
+# time, we accumulate goals to be built by updating TARGETS
+#
 ifeq ($(MAKECMDGOALS),)
-TARGETS := all.$(2)
+TARGETS += all.$(2)
 else
-TARGETS := $(MAKECMDGOALS:%=%.$(2))
-$(MAKECMDGOALS): $$(TARGETS)
+TARGETS += $(MAKECMDGOALS:%=%.$(2))
 endif
 
+#
+# o $$(TARGETS) needs to be defined only once.
+# o $$(TARGETS) is used in the definition since $$@
+#   expansion covers only the first target.
+#
+ifndef DEF_TARGETS
+DEF_TARGETS := 1
+
+$(MAKECMDGOALS): $$(TARGETS)
 $$(TARGETS):
-	$(Q)$(MAKE) -C $$(_TOPDIR_) --no-print-directory $$@
+	$(Q)$(MAKE) -C $$(_TOPDIR_) --no-print-directory $$(TARGETS)
+endif
 
 else
 include $(Makefile.$(1))
@@ -207,7 +215,7 @@ endef
 # Evaluate depency targets, CFLAGS and LFLAGS for deps as specified by $(DEPEND).
 # This is common eval between Makefile.{cbin,clib,stm32}.
 #  [in] - $(DEPEND), $(OBJDIR)
-# [out] - Dependency targets: $(DEP_SO) $(DEP_AR)
+# [out] - Dependency target names: $(DEP_SO) $(DEP_AR)
 #         Dependency CFLAGS: $(DEPINC)
 #         Dependency LFLAGS: $(DEP_LD)
 #
@@ -221,6 +229,14 @@ DEP_LD := $$(DEPDIR:%=-L$$(OBJDIR)/%)
 DEP_LD += $$(DEPTGT:%=-l:lib%.a)
 endef
 
+
+#
+# Macro to create target that's invoked if "cflags" of a product is changed from
+# previous build. It is also added as dependency on the "c-objects" of the product.
+#  [in] - "product name $(1)", $(PRODUCT_OBJDIR), $(CFLAGS), $(LFLAGS), $(CXXFLAGS)
+# [out] - Dependency target that detects changes in "cflags" and forces rebuild
+#         of "c-objects" of the product
+#
 define cflags_change_tgt
 # List of flags to detect change in
 DIFF_FLAGS := CFLAGS LFLAGS CXXFLAGS

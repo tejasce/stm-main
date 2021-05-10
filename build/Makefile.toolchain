@@ -23,6 +23,7 @@ AR := $$(CROSS_COMPILE_PREFIX)ar
 OBJCOPY := $$(CROSS_COMPILE_PREFIX)objcopy
 
 PROTOC := /usr/local/$$(TARGET_ARCH)/bin/protoc
+WEST := /usr/local/bin/west
 
 OBJDIR := $$(OBJDIR_PREFIX)$$(TGT)
 endef

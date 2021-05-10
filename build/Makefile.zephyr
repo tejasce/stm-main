@@ -1,0 +1,39 @@
+ifdef ZEPHYR_APP
+
+# Override to use appropriate $(OBJDIR) location (toolchain is already selected by buildenv)
+$(eval $(call inc_toolchain,firmware))
+
+# This file defines rules for targets: [all|clean].$(PRODUCT)
+PRODUCT := $(ZEPHYR_APP)
+# For top Makefile
+PRODUCTS += $(PRODUCT)
+PRODUCT_OBJDIR := $(OBJDIR)/$(PRODIR)
+BOARD_PRODUCT_OBJDIR := $(PRODUCT_OBJDIR)/$(BOARD)
+
+# For top Makefile
+OBJ_SUBDIRS += $(BOARD_PRODUCT_OBJDIR)
+
+# Location of built file. Same location also has .bin, .hex and .map files.
+# But since same instance of $(WEST) generates all, use only .elf file as target.
+ELF := $(BOARD_PRODUCT_OBJDIR)/zephyr/zephyr.elf
+
+# Maybe this target should depend on buncha files from a zephyr app instead
+.PHONY: $(ELF)
+$(ELF):: BOARD := $(BOARD)
+$(ELF):: PRODIR := $(PRODIR)
+$(ELF):: BOARD_PRODUCT_OBJDIR := $(BOARD_PRODUCT_OBJDIR)
+$(ELF):: BUILD_LOG := $(BOARD_PRODUCT_OBJDIR)/build.log
+$(ELF): | $(BOARD_PRODUCT_OBJDIR)
+	@echo "Creating $@ (LOGS: $(BUILD_LOG))"
+	$(Q)$(WEST) build $(PRODIR) -b $(BOARD) --build-dir $(realpath $(BOARD_PRODUCT_OBJDIR)) > $(BUILD_LOG) 2>&1 || { tail -n 40 $(BUILD_LOG); exit 1; }
+
+all.$(PRODUCT): $(ELF)
+
+clean.$(PRODUCT):: PRODUCT_OBJDIR := $(PRODUCT_OBJDIR)
+clean.$(PRODUCT):: BOARD_PRODUCT_OBJDIR := $(BOARD_PRODUCT_OBJDIR)
+clean.$(PRODUCT):
+	@echo "Removing $(BOARD_PRODUCT_OBJDIR)"
+	$(Q)rm -rf $(BOARD_PRODUCT_OBJDIR)
+	$(Q)rmdir $(PRODUCT_OBJDIR) 2>/dev/null || true
+
+endif  # ifdef ZEPHYR_APP

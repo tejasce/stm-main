@@ -112,6 +112,33 @@ RUN wget https://github.com/protocolbuffers/protobuf/releases/download/v${VER}/p
     fi && \
     cd .. && rm -rf protobuf-cpp-${VER}.tar.gz* protobuf-${VER}
 
+# zephyr
+RUN if [ "$(uname -m)" = "aarch64" ]; then \
+        curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y; \
+        . $HOME/.cargo/env; \
+    fi && \
+    pip3 install wheel pip -U && \
+    pip3 install -r https://raw.githubusercontent.com/zephyrproject-rtos/zephyr/master/scripts/requirements.txt && \
+    pip3 install -r https://raw.githubusercontent.com/zephyrproject-rtos/mcuboot/master/scripts/requirements.txt && \
+    pip3 install west &&\
+    pip3 install sh &&\
+    pip3 install awscli PyGithub junitparser pylint \
+                 statistics numpy \
+                 imgtool \
+                 protobuf
+ENV VER=2.5.0
+ENV ZEPHYR_HOME=/zephyr
+RUN wget https://github.com/zephyrproject-rtos/zephyr/archive/refs/tags/zephyr-v${VER}.tar.gz && \
+    mkdir -p ${ZEPHYR_HOME} && tar xfz zephyr-v${VER}.tar.gz -C ${ZEPHYR_HOME} --strip-components 1 && \
+    rm -f zephyr-v${VER}.tar.gz && \
+    cd ${ZEPHYR_HOME} && west init && west update
+
+RUN apt-get update && \
+    apt-get install -y \
+        ninja-build && \
+    apt-get clean all && \
+        rm -rf /var/lib/apt/lists/*
+
 # Add "this" user to buildenv image
 ARG USER
 ARG GROUP
@@ -132,3 +159,11 @@ RUN if [ -n "$DOCKER_GID" ]; then \
         groupmod docker -g $DOCKER_GID; \
     fi && \
     usermod -aG docker $USER
+
+# Settings after $USER is added
+RUN chown -R $USER:$GROUP ${ZEPHYR_HOME}
+
+# Env variables for build to work as expected
+ENV ZEPHYR_BASE=${ZEPHYR_HOME}/zephyr
+ENV ZEPHYR_TOOLCHAIN_VARIANT=cross-compile
+ENV CROSS_COMPILE=/usr/bin/arm-none-eabi-
