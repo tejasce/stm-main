@@ -24,10 +24,7 @@ $(ELF):: PRODIR := $(PRODIR)
 $(ELF):: BOARD_PRODUCT_OBJDIR := $(BOARD_PRODUCT_OBJDIR)
 $(ELF):: BUILD_LOG := $(BOARD_PRODUCT_OBJDIR)/build.log
 $(ELF): | $(BOARD_PRODUCT_OBJDIR)
-	@if [ "$(VERBOSE)" -ge "1" ]; then \
-		echo "Building $@ (LOGS: $(BUILD_LOG))"; \
-	fi;
-	@echo "Creating $@"
+	@echo "Creating $@ (LOGS: $(BUILD_LOG))"
 	$(Q)$(WEST) build $(PRODIR) -b $(BOARD) --build-dir $(realpath $(BOARD_PRODUCT_OBJDIR)) > $(BUILD_LOG) 2>&1 || { tail -n 40 $(BUILD_LOG); exit 1; }
 
 all.$(PRODUCT): $(ELF)
