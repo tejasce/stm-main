@@ -109,7 +109,7 @@ endef
 define inc_subdir
 ifeq ($(TOPDIR),)
 # This method won't honor if a subdir is present but isn't
-# enlisted in the makefile parent dir
+# enlisted in the makefile of the parent dir
 MKFILES += $(shell find $(1) -mindepth 2 -name Makefile)
 
 #
