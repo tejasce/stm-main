@@ -68,8 +68,7 @@ include $(Makefile.toolchain)
 #
 # Helper command line variable for build debugging
 #
-VERBOSE ?= 1
-ifeq ($(VERBOSE),2)
+ifdef VERBOSE
 Q :=
 else
 Q := @
@@ -203,9 +202,7 @@ $$(OBJFILE):: GCC := $$(GCC)
 $$(OBJFILE):: CFLAGS := $$(CFLAGS)
 $$(OBJFILE):: CXXFLAGS := $$(CXXFLAGS)
 $$(OBJFILE): $(1) | $$(dir $$(OBJFILE))
-	@if [ "$(VERBOSE)" -ge "1" ]; then \
-		printf "%$(PCOL)s %s\n" $$(GCCSTR) $$@; \
-	fi;
+	@printf "%$(PCOL)s %s\n" $$(GCCSTR) $$@
 	$(Q)$$(GCC) $$(CFLAGS) $$(CXXFLAGS) $$(DEPFLAGS) -c $$< -o $$@
 	@mv -f $$*.Td $$*.d && touch $$@
 

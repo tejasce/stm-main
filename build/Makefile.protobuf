@@ -29,9 +29,7 @@ define pb_cc_src_tgt
 PB_CC_FILE := $(PRODUCT_OBJDIR)/$(1:%.proto=%.pb.cc)
 
 $$(PB_CC_FILE): $(PRODIR)/$(1) | $$(dir $$(PB_CC_FILE))
-	@if [ "$(VERBOSE)" -ge "1" ]; then \
-		printf "%$(PCOL)s %s\n" "[PROTOC]" $$@; \
-	fi;
+	@printf "%$(PCOL)s %s\n" "[PROTOC]" $$@
 	$(Q)$(PROTOC) -I $(PRODIR) $$^ --cpp_out=$(PRODUCT_OBJDIR)
 
 PB_CC_SRCS += $$(PB_CC_FILE)

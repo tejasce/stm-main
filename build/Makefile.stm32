@@ -42,9 +42,7 @@ define S_OBJ_TGT
 $(1):: CC := $$(CC)
 $(1):: CFLAGS := $$(CFLAGS)
 $(1): $(subst $(OBJDIR)/,,$(1:%.o=%.s)) | $(dir $(1))
-	@if [ "$(VERBOSE)" -ge "1" ]; then \
-		printf "%$(PCOL)s %s\n" "[CC]" $$@; \
-	fi;
+	@printf "%$(PCOL)s %s\n" "[CC]" $$@
 	$(Q)$$(CC) $$(CFLAGS) -c $$< -o $$@
 endef
 $(foreach OBJFILE,$(S_OBJS),$(eval $(call S_OBJ_TGT,$(OBJFILE))))
