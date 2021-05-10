@@ -53,7 +53,7 @@ $(foreach OBJFILE,$(S_OBJS),$(eval $(call S_OBJ_TGT,$(OBJFILE))))
 $(ELF):: CC := $(CC)
 $(ELF):: LFLAGS := $(LFLAGS)
 $(ELF): $(LD_SRC) $(DEP_AR) $(C_OBJS) $(S_OBJS)
-	@echo "      [CC] $@"
+	@echo "    [CCLD] $@"
 	$(Q)$(CC) -T $(filter %.ld,$^) $(filter %.o,$^) $(LFLAGS) -o $@
 
 $(BIN):: OBJCOPY := $(OBJCOPY)
