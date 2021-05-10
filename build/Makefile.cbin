@@ -36,14 +36,14 @@ $(eval $(call add_c_obj_tgts,$(C_SRCS:%=$(PRODIR)/%)))
 $(BINELF):: CXX := $(CXX)
 $(BINELF):: LFLAGS := $(LFLAGS)
 $(BINELF): $(DEP_AR) $(C_OBJS)
-	@echo "   [CXXLD] $@"
+	@printf "%$(PCOL)s %s\n" "[CXXLD]" $@
 	$(Q)$(CXX) -o $@ $(filter %.o,$^) $(LFLAGS)
 
 all.$(PRODUCT): $(BINELF)
 
 clean.$(PRODUCT):: PRODUCT_OBJDIR := $(PRODUCT_OBJDIR)
 clean.$(PRODUCT):
-	@echo "      [RM] $(PRODUCT_OBJDIR)"
+	@printf "%$(PCOL)s %s\n" "[RM]" $(PRODUCT_OBJDIR)
 	$(Q)rm -rf $(PRODUCT_OBJDIR)
 
 endif  # define C_BIN

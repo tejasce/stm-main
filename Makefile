@@ -56,7 +56,7 @@ endif
 # Wrapper useful "clean" targets
 #
 cleanall:
-	@echo "      [RM] $(OBJDIR_PREFIX)*"
+	@printf "%$(PCOL)s %s\n" "[RM]" "$(OBJDIR_PREFIX)*"
 	$(Q)rm -rf $(OBJDIR_PREFIX)*
 
 clobber: cleanall
