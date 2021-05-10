@@ -42,20 +42,20 @@ $(eval $(call add_c_obj_tgts,$(PB_CC_SRCS)))
 $(LIB_SO):: CXX := $(CXX)
 $(LIB_SO):: LFLAGS := $(LFLAGS)
 $(LIB_SO): $(DEP_SO) $(PB_CC_OBJS)
-	@echo "Creating $@"
+	@echo "   [CXXLD] $@"
 	$(Q)$(CXX) $(LFLAGS) -o $@ $(filter-out $(CC_H_EXTS_PATT),$^)
 
 # Build dep .a first
 $(LIB_AR): AR := $(AR)
 $(LIB_AR): $(DEP_AR) $(PB_CC_OBJS)
-	@echo "Creating $@"
+	@echo "      [AR] $@"
 	$(Q)$(AR) -c -r -s -o $@ $(filter-out $(CC_H_EXTS_PATT),$^)
 
 all.$(PRODUCT): $(LIB_SO) $(LIB_AR)
 
 clean.$(PRODUCT):: PRODUCT_OBJDIR := $(PRODUCT_OBJDIR)
 clean.$(PRODUCT):
-	@echo "Removing $(PRODUCT_OBJDIR)"
+	@echo "      [RM] $(PRODUCT_OBJDIR)"
 	$(Q)rm -rf $(PRODUCT_OBJDIR)
 
 endif

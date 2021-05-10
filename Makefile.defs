@@ -182,8 +182,10 @@ SUFFIX := $$(suffix $(1))
 
 ifeq ($$(SUFFIX),$$(filter $$(SUFFIX),$$(CC_EXTS)))
 GCC := $$(CXX)
+GCCSTR := "     [CXX]"
 else ifeq ($$(SUFFIX),.c)
 GCC := $$(CC)
+GCCSTR := "      [CC]"
 # Ignore CXXFLAGS for .c files
 CXXFLAGS :=
 else
@@ -194,12 +196,13 @@ endif
 # before adding it as a prefix to "OBJFILE"
 OBJFILE := $(OBJDIR)/$$(patsubst %$$(SUFFIX),%.o,$(subst $(OBJDIR)/,,$(1)))
 
+$$(OBJFILE):: GCCSTR := $$(GCCSTR)
 $$(OBJFILE):: GCC := $$(GCC)
 $$(OBJFILE):: CFLAGS := $$(CFLAGS)
 $$(OBJFILE):: CXXFLAGS := $$(CXXFLAGS)
 $$(OBJFILE): $(1) | $$(dir $$(OBJFILE))
 	@if [ "$(VERBOSE)" -ge "1" ]; then \
-		echo "Building $$< => $$@"; \
+		printf "%s %s\n" $$(GCCSTR) $$@; \
 	fi;
 	$(Q)$$(GCC) $$(CFLAGS) $$(CXXFLAGS) $$(DEPFLAGS) -c $$< -o $$@
 	@mv -f $$*.Td $$*.d && touch $$@

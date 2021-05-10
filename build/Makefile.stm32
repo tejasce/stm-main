@@ -43,7 +43,7 @@ $(1):: CC := $$(CC)
 $(1):: CFLAGS := $$(CFLAGS)
 $(1): $(subst $(OBJDIR)/,,$(1:%.o=%.s)) | $(dir $(1))
 	@if [ "$(VERBOSE)" -ge "1" ]; then \
-		echo "Building $$< => $$@"; \
+		echo "      [CC] $$@"; \
 	fi;
 	$(Q)$$(CC) $$(CFLAGS) -c $$< -o $$@
 endef
@@ -53,24 +53,24 @@ $(foreach OBJFILE,$(S_OBJS),$(eval $(call S_OBJ_TGT,$(OBJFILE))))
 $(ELF):: CC := $(CC)
 $(ELF):: LFLAGS := $(LFLAGS)
 $(ELF): $(LD_SRC) $(DEP_AR) $(C_OBJS) $(S_OBJS)
-	@echo "Creating $@"
+	@echo "      [CC] $@"
 	$(Q)$(CC) -T $(filter %.ld,$^) $(filter %.o,$^) $(LFLAGS) -o $@
 
 $(BIN):: OBJCOPY := $(OBJCOPY)
 $(BIN): $(ELF)
-	@echo "Creating $@"
+	@echo " [OBJCOPY] $@"
 	$(Q)$(OBJCOPY) -Obinary $^ $@
 
 $(HEX):: OBJCOPY := $(OBJCOPY)
 $(HEX): $(ELF)
-	@echo "Creating $@"
+	@echo " [OBJCOPY] $@"
 	$(Q)$(OBJCOPY) -Oihex $^ $@
 
 all.$(PRODUCT): $(ELF) $(BIN) $(HEX)
 
 clean.$(PRODUCT):: PRODUCT_OBJDIR := $(PRODUCT_OBJDIR)
 clean.$(PRODUCT):
-	@echo "Removing $(PRODUCT_OBJDIR)"
+	@echo "      [RM] $(PRODUCT_OBJDIR)"
 	$(Q)rm -rf $(PRODUCT_OBJDIR)
 
 endif  # define STM32_ELF

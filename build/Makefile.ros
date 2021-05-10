@@ -41,7 +41,7 @@ clean.$(ROS2_DISTRO):
 
 help.ros:
 	@echo "ROS Targets (cross-compilation not supported)"
-	@echo "           $(ROS1_DISTRO): Build ROS2 ($(ROS1_DISTRO)) packages"
+	@echo "           $(ROS1_DISTRO): Build ROS1 ($(ROS1_DISTRO)) packages"
 	@echo "     clean.$(ROS1_DISTRO): rm -rf $(notdir $(NOETIC_WS))/{build,install,devel}"
 	@echo "             $(ROS2_DISTRO): Build ROS2 ($(ROS2_DISTRO)) packages"
 	@echo "       clean.$(ROS2_DISTRO): rm -rf $(notdir $(FOXY_WS))/{build,install,log}"

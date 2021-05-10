@@ -56,7 +56,7 @@ endif
 # Wrapper useful "clean" targets
 #
 cleanall:
-	@echo "Removing $(OBJDIR_PREFIX)*"
+	@echo "      [RM] $(OBJDIR_PREFIX)*"
 	$(Q)rm -rf $(OBJDIR_PREFIX)*
 
 clobber: cleanall
