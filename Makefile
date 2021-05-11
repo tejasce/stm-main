@@ -88,3 +88,5 @@ help:
 	@echo
 	@echo "Other supported build systems (outside of default build system)"
 	@echo "         ROS: make help.ros"
+
+.SILENT:
