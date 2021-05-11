@@ -13,7 +13,7 @@ DEPEND := cmds/common/pb_example/proto:addressbook
 CFLAGS += $(PROTOBUF_CFLAGS)
 LFLAGS += $(PROTOBUF_LFLAGS)
 
-include Makefile.defs
+include $(shell git rev-parse --show-toplevel)/Makefile.defs
 $(eval $(call inc_rule,cbin,$(C_BIN)))
 
 # add another C_BIN

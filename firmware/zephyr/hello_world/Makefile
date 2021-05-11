@@ -5,7 +5,7 @@ ZEPHYR_APP_NAME := hello_world
 BOARD := nucleo_f401re
 ZEPHYR_APP := $(ZEPHYR_APP_NAME).$(BOARD)
 
-include Makefile.defs
+include $(shell git rev-parse --show-toplevel)/Makefile.defs
 $(eval $(call inc_rule,zephyr,$(ZEPHYR_APP)))
 
 # Example: create same app for a different board
