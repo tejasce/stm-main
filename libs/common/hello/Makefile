@@ -16,5 +16,5 @@ STRIP_INC_PREFIX := inc
 # include_prefix
 INC_PREFIX := libhello
 
-include Makefile.defs
+include $(shell git rev-parse --show-toplevel)/Makefile.defs
 $(eval $(call inc_rule,clib,$(C_LIB)))

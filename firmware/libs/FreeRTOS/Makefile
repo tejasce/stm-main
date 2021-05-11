@@ -23,7 +23,7 @@ INC_PREFIX :=
 CFLAGS += $(STM32_CFLAGS)
 CFLAGS += -mthumb-interwork -mfpu=fpv4-sp-d16 -mfloat-abi=softfp -std=gnu90 -ffunction-sections -fdata-sections
 
-include Makefile.defs
+include $(shell git rev-parse --show-toplevel)/Makefile.defs
 
 # Override to use arm-none-eabi-gcc and, consequently, $(OBJDIR) location
 $(eval $(call inc_toolchain,firmware))

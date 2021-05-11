@@ -32,7 +32,7 @@ OBJ_SUBDIRS :=
 #
 THIS_DIR := $(dir $(lastword $(MAKEFILE_LIST)))
 SUBDIRS := firmware libs cmds
-include Makefile.defs
+include $(shell git rev-parse --show-toplevel)/Makefile.defs
 $(eval $(call inc_subdir,$(THIS_DIR),$(SUBDIRS)))
 
 #

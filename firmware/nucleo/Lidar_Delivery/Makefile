@@ -6,5 +6,5 @@ C_SRCS := $(shell find $(THIS_DIR) -name "*.c" -printf "%P\n" 2>/dev/null | sed 
 S_SRCS := $(shell find $(THIS_DIR) -name "*.s" -printf "%P\n" 2>/dev/null | sed "s|^\./||")
 LD_SRC := LinkerScript.ld
 
-include Makefile.defs
+include $(shell git rev-parse --show-toplevel)/Makefile.defs
 $(eval $(call inc_rule,stm32,$(STM32_ELF)))

@@ -1,8 +1,8 @@
 #
 # @file: Makefile that defines absolute paths and macro definitions for
-#        the build system for the repo. A symlink to this file must
-#        exist at each directory level of this repo to allow invoking
-#        and building at any sub-directory level.
+#        the build system for the repo. It is included at each directory
+#        level of this repo to allow invoking and building at any
+#        sub-directory level.
 #
 
 
