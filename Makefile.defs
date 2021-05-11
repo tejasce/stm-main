@@ -37,6 +37,8 @@ CC_H_EXTS_PATT := $(CC_H_EXTS:%=\%%)
 # PROTOBUF ARCH dependent CFLAGS and LFLAGS
 PROTOBUF_CFLAGS := -pthread -I/usr/local/$(ARCH)/include
 PROTOBUF_LFLAGS := -L/usr/local/$(ARCH)/lib -lprotobuf -lpthread
+# Number of colums to print at start of line in build output
+PCOL := 10
 
 #
 # All supported rules
@@ -66,8 +68,7 @@ include $(Makefile.toolchain)
 #
 # Helper command line variable for build debugging
 #
-VERBOSE ?= 0
-ifeq ($(VERBOSE),2)
+ifdef VERBOSE
 Q :=
 else
 Q := @
@@ -182,8 +183,10 @@ SUFFIX := $$(suffix $(1))
 
 ifeq ($$(SUFFIX),$$(filter $$(SUFFIX),$$(CC_EXTS)))
 GCC := $$(CXX)
+GCCSTR := "[CXX]"
 else ifeq ($$(SUFFIX),.c)
 GCC := $$(CC)
+GCCSTR := "[CC]"
 # Ignore CXXFLAGS for .c files
 CXXFLAGS :=
 else
@@ -194,13 +197,12 @@ endif
 # before adding it as a prefix to "OBJFILE"
 OBJFILE := $(OBJDIR)/$$(patsubst %$$(SUFFIX),%.o,$(subst $(OBJDIR)/,,$(1)))
 
+$$(OBJFILE):: GCCSTR := $$(GCCSTR)
 $$(OBJFILE):: GCC := $$(GCC)
 $$(OBJFILE):: CFLAGS := $$(CFLAGS)
 $$(OBJFILE):: CXXFLAGS := $$(CXXFLAGS)
 $$(OBJFILE): $(1) | $$(dir $$(OBJFILE))
-	@if [ "$(VERBOSE)" -ge "1" ]; then \
-		echo "Building $$< => $$@"; \
-	fi;
+	@printf "%$(PCOL)s %s\n" $$(GCCSTR) $$@
 	$(Q)$$(GCC) $$(CFLAGS) $$(CXXFLAGS) $$(DEPFLAGS) -c $$< -o $$@
 	@mv -f $$*.Td $$*.d && touch $$@
 

@@ -1,4 +1,4 @@
-PROTO_LIB := address_book
+PROTO_LIB := addressbook
 
 PB_SRCS := addressbook.proto
 

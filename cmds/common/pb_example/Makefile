@@ -8,7 +8,7 @@ H_DIRS :=
 C_SRCS := src/add_person.cc
 
 # "deps"
-DEPEND := cmds/common/pb_example/proto:address_book
+DEPEND := cmds/common/pb_example/proto:addressbook
 
 CFLAGS += $(PROTOBUF_CFLAGS)
 LFLAGS += $(PROTOBUF_LFLAGS)
@@ -20,7 +20,7 @@ $(eval $(call inc_rule,cbin,$(C_BIN)))
 C_BIN := list_people
 H_DIRS :=
 C_SRCS := src/list_people.cc
-DEPEND := cmds/common/pb_example/proto:address_book
+DEPEND := cmds/common/pb_example/proto:addressbook
 CFLAGS += $(PROTOBUF_CFLAGS)
 LFLAGS += $(PROTOBUF_LFLAGS)
 $(eval $(call inc_rule,cbin,$(C_BIN)))

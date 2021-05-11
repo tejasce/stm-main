@@ -56,7 +56,7 @@ endif
 # Wrapper useful "clean" targets
 #
 cleanall:
-	@echo "Removing $(OBJDIR_PREFIX)*"
+	@printf "%$(PCOL)s %s\n" "[RM]" "$(OBJDIR_PREFIX)*"
 	$(Q)rm -rf $(OBJDIR_PREFIX)*
 
 clobber: cleanall
@@ -83,8 +83,8 @@ help:
 	@echo "Commmand-line overrides"
 	@echo "        ARCH: build for a target architecture"
 	@echo "              Supported: $(SUPPORTED_ARCHS) [Default: $(TARGET_ARCH)]"
-	@echo "     VERBOSE: build verbose level"
-	@echo "              Supported: 1 2 [Default: quiet]"
+	@echo "     VERBOSE: build verbosity"
+	@echo "              On/Off if defined/undefined [Default: not defined]"
 	@echo
 	@echo "Other supported build systems (outside of default build system)"
 	@echo "         ROS: make help.ros"
