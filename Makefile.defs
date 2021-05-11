@@ -154,7 +154,7 @@ DEF_TARGETS := 1
 
 $(MAKECMDGOALS): $$(TARGETS)
 $$(TARGETS):
-	$(Q)$(MAKE) -C $$(_TOPDIR_) --no-print-directory $$(TARGETS)
+	$(Q)$$(MAKE) -C $$(_TOPDIR_) --no-print-directory $$(TARGETS)
 endif
 
 else
@@ -246,11 +246,14 @@ DIFF_FLAGS := CFLAGS LFLAGS CXXFLAGS
 METADATA_FILE := $(PRODUCT_OBJDIR)/metadata.$(1).mk
 METADATA_FILE_TMP := $$(METADATA_FILE:%=%.tmp)
 
+$$(METADATA_FILE):: CFLAGS := $(CFLAGS)
+$$(METADATA_FILE):: LFLAGS := $(LFLAGS)
+$$(METADATA_FILE):: CXXFLAGS := $(CXXFLAGS)
 $$(METADATA_FILE):: METADATA_FILE_TMP := $$(METADATA_FILE_TMP)
 $$(METADATA_FILE): clean_$$(METADATA_FILE_TMP) | $(PRODUCT_OBJDIR)
 	$$(foreach flag,$$(DIFF_FLAGS),$$(shell eval "echo $$(flag) := $$($$(flag)) >> $$(METADATA_FILE_TMP)"))
 	@if [ ! -f $$@ ] || ! diff $$@ $$(METADATA_FILE_TMP) >/dev/null; then \
-		[ -f $$@ ] && echo "$(1): Flags changed"; \
+		[ -f $$@ ] && printf "%$(PCOL)s %s\n" "[=>]" "$$(@D)/$(1) [flags changed]"; \
 		mv $$(METADATA_FILE_TMP) $$@; \
 	else \
 		rm $$(METADATA_FILE_TMP); \
