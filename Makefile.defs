@@ -183,10 +183,10 @@ SUFFIX := $$(suffix $(1))
 
 ifeq ($$(SUFFIX),$$(filter $$(SUFFIX),$$(CC_EXTS)))
 GCC := $$(CXX)
-GCCSTR := "     [CXX]"
+GCCSTR := "[CXX]"
 else ifeq ($$(SUFFIX),.c)
 GCC := $$(CC)
-GCCSTR := "      [CC]"
+GCCSTR := "[CC]"
 # Ignore CXXFLAGS for .c files
 CXXFLAGS :=
 else
