@@ -146,6 +146,11 @@ RUN apt-get update && \
     apt-get clean all && \
         rm -rf /var/lib/apt/lists/*
 
+# Global buildenv wide settings
+ENV ZEPHYR_BASE=${ZEPHYR_HOME}/zephyr
+ENV ZEPHYR_TOOLCHAIN_VARIANT=cross-compile
+ENV PATH=$CARGO_HOME/bin:$PATH
+
 # Add "this" user to buildenv image
 ARG USER
 ARG GROUP
@@ -169,8 +174,3 @@ RUN if [ -n "$DOCKER_GID" ]; then \
 
 # Settings after $USER is added
 RUN chown -R $USER:$GROUP ${ZEPHYR_HOME}
-
-# Env variables for build to work as expected
-ENV ZEPHYR_BASE=${ZEPHYR_HOME}/zephyr
-ENV ZEPHYR_TOOLCHAIN_VARIANT=cross-compile
-ENV PATH=$CARGO_HOME/bin:$PATH
