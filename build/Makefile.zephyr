@@ -27,7 +27,7 @@ $(ELF):: BUILD_LOG := $(BOARD_PRODUCT_OBJDIR)/build.log
 $(ELF): $(ZEPHYR_APP_DEP_FILES) | $(BOARD_PRODUCT_OBJDIR)
 	@printf "%$(PCOL)s %s\n" "[WEST]" $@ && \
 		printf "%$(PCOL)s %s %s\n" "" "Logs:" $(BUILD_LOG)
-	$(Q)$(WEST) build $(PRODIR) -b $(BOARD) --build-dir $(realpath $(BOARD_PRODUCT_OBJDIR)) > $(BUILD_LOG) 2>&1 || { tail -n 40 $(BUILD_LOG); exit 1; }
+	$(Q)CROSS_COMPILE=/usr/bin/arm-none-eabi- $(WEST) build $(PRODIR) -b $(BOARD) --build-dir $(realpath $(BOARD_PRODUCT_OBJDIR)) > $(BUILD_LOG) 2>&1 || { tail -n 40 $(BUILD_LOG); exit 1; }
 
 all.$(PRODUCT): $(ELF)
 
