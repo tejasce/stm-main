@@ -15,6 +15,7 @@
 #
 _TOPDIR_ := $(shell git rev-parse --show-toplevel)
 Makefile.buildenv := $(_TOPDIR_)/build/Makefile.buildenv
+Makefile.cargo := $(_TOPDIR_)/build/Makefile.cargo
 Makefile.cbin := $(_TOPDIR_)/build/Makefile.cbin
 Makefile.clib := $(_TOPDIR_)/build/Makefile.clib
 Makefile.protobuf := $(_TOPDIR_)/build/Makefile.protobuf
@@ -43,7 +44,7 @@ PCOL := 10
 #
 # All supported rules
 #
-ALL_RULES := STM32_ELF C_LIB C_BIN PROTO_LIB ZEPHYR_APP
+ALL_RULES := STM32_ELF C_LIB C_BIN PROTO_LIB ZEPHYR_APP CARGO_PROJ
 
 #
 # Enumerate name of attributes for each rule to undef them before inclusion
