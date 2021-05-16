@@ -112,11 +112,18 @@ RUN wget https://github.com/protocolbuffers/protobuf/releases/download/v${VER}/p
     fi && \
     cd .. && rm -rf protobuf-cpp-${VER}.tar.gz* protobuf-${VER}
 
+# rust
+ENV CARGO_HOME=/usr/local/cargo
+ENV RUSTUP_HOME=$CARGO_HOME
+RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y && \
+    . $CARGO_HOME/env && \
+    if [ "$(uname -m)" = "x86_64" ]; then \
+        rustup target add aarch64-unknown-linux-gnu; \
+    fi; \
+    rustup target add arm-unknown-linux-gnueabihf
+
 # zephyr
-RUN if [ "$(uname -m)" = "aarch64" ]; then \
-        curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y; \
-        . $HOME/.cargo/env; \
-    fi && \
+RUN . $CARGO_HOME/env && \
     pip3 install wheel pip -U && \
     pip3 install -r https://raw.githubusercontent.com/zephyrproject-rtos/zephyr/master/scripts/requirements.txt && \
     pip3 install -r https://raw.githubusercontent.com/zephyrproject-rtos/mcuboot/master/scripts/requirements.txt && \
@@ -167,3 +174,4 @@ RUN chown -R $USER:$GROUP ${ZEPHYR_HOME}
 ENV ZEPHYR_BASE=${ZEPHYR_HOME}/zephyr
 ENV ZEPHYR_TOOLCHAIN_VARIANT=cross-compile
 ENV CROSS_COMPILE=/usr/bin/arm-none-eabi-
+ENV PATH=$CARGO_HOME/bin:$PATH
