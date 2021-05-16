@@ -147,6 +147,7 @@ RUN apt-get update && \
         rm -rf /var/lib/apt/lists/*
 
 # Global buildenv wide settings
+ENV VER
 ENV ZEPHYR_BASE=${ZEPHYR_HOME}/zephyr
 ENV ZEPHYR_TOOLCHAIN_VARIANT=cross-compile
 ENV PATH=$CARGO_HOME/bin:$PATH
