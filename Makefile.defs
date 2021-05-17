@@ -27,6 +27,7 @@ Makefile.zephyr := $(_TOPDIR_)/build/Makefile.zephyr
 #
 # Common constants
 #
+CORES := $(shell nproc)
 DEPFLAGS = -MT $@ -MMD -MP -MF $*.Td
 STM32_CFLAGS := -mcpu=cortex-m4 -mlittle-endian -mthumb -Os -ggdb
 # Supported C++ source and header extensions. Excludes .c because

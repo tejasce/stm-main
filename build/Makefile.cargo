@@ -27,8 +27,8 @@ $(BINELF):: PRODIR := $(PRODIR)
 $(BINELF):: PRODUCT_OBJDIR := $(PRODUCT_OBJDIR)
 $(BINELF):: BUILD_LOG := $(PRODUCT_OBJDIR)/build.log
 $(BINELF): | $(PRODUCT_OBJDIR)
-	@printf "%$(PCOL)s %s\n" "[CARGO]" $@ && printf "%$(PCOL)s %s %s\n" "" "Logs:" $(BUILD_LOG)
-	$(Q)$(CARGO) build --manifest-path $(PRODIR)/Cargo.toml --target-dir $(PRODUCT_OBJDIR) $(CARGO_TARGET_ARG) > $(BUILD_LOG) 2>&1 || { tail -n 40 $(BUILD_LOG); exit 1; }
+	printf "%$(PCOL)s %s\n" "[CARGO]" $@ && printf "%$(PCOL)s %s %s\n" "" "Logs:" $(BUILD_LOG)
+	$(CARGO) build --manifest-path $(PRODIR)/Cargo.toml --target-dir $(PRODUCT_OBJDIR) $(CARGO_TARGET_ARG) --jobs $(CORES) > $(BUILD_LOG) 2>&1 || { tail -n 40 $(BUILD_LOG); exit 1; }
 
 all.$(PRODUCT): $(BINELF)
 
