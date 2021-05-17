@@ -38,4 +38,3 @@ clean.$(PRODUCT):
 	$(Q)rm -rf $(PRODUCT_OBJDIR)
 
 endif  # ifdef CARGO_PROJ
-
