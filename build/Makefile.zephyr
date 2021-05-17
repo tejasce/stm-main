@@ -3,6 +3,13 @@ ifdef ZEPHYR_APP
 # Override to use appropriate $(OBJDIR) location (toolchain is already selected by buildenv)
 $(eval $(call inc_toolchain,firmware))
 
+# Use arm-none-eabi- toolchain to build firmware unless explictly specified
+# in product makefile as one or more space sparated BASH key=val
+ifeq ($(ZEPHYR_TOOLCHAIN_ARGS),)
+ZEPHYR_TOOLCHAIN_ARGS := ZEPHYR_TOOLCHAIN_VARIANT=cross-compile
+ZEPHYR_TOOLCHAIN_ARGS += CROSS_COMPILE=/usr/bin/arm-none-eabi-
+endif
+
 # This file defines rules for targets: [all|clean].$(PRODUCT)
 PRODUCT := $(ZEPHYR_APP)
 # For top Makefile
@@ -24,10 +31,11 @@ $(ELF):: BOARD := $(BOARD)
 $(ELF):: PRODIR := $(PRODIR)
 $(ELF):: BOARD_PRODUCT_OBJDIR := $(BOARD_PRODUCT_OBJDIR)
 $(ELF):: BUILD_LOG := $(BOARD_PRODUCT_OBJDIR)/build.log
+$(ELF):: ZEPHYR_TOOLCHAIN_ARGS := $(ZEPHYR_TOOLCHAIN_ARGS)
 $(ELF): $(ZEPHYR_APP_DEP_FILES) | $(BOARD_PRODUCT_OBJDIR)
 	@printf "%$(PCOL)s %s\n" "[WEST]" $@ && \
 		printf "%$(PCOL)s %s %s\n" "" "Logs:" $(BUILD_LOG)
-	$(Q)$(WEST) build $(PRODIR) -b $(BOARD) --build-dir $(realpath $(BOARD_PRODUCT_OBJDIR)) > $(BUILD_LOG) 2>&1 || { tail -n 40 $(BUILD_LOG); exit 1; }
+	$(Q)ZEPHYR_BASE=$(ZEPHYR_HOME)/zephyr $(ZEPHYR_TOOLCHAIN_ARGS) $(WEST) build $(PRODIR) -b $(BOARD) --build-dir $(realpath $(BOARD_PRODUCT_OBJDIR)) > $(BUILD_LOG) 2>&1 || { tail -n 40 $(BUILD_LOG); exit 1; }
 
 all.$(PRODUCT): $(ELF)
 

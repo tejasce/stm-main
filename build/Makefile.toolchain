@@ -24,6 +24,7 @@ OBJCOPY := $$(CROSS_COMPILE_PREFIX)objcopy
 
 PROTOC := /usr/local/$$(TARGET_ARCH)/bin/protoc
 WEST := /usr/local/bin/west
+CARGO := /usr/local/cargo/bin/cargo
 
 OBJDIR := $$(OBJDIR_PREFIX)$$(TGT)
 endef

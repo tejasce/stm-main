@@ -1,0 +1,40 @@
+ifdef CARGO_PROJ
+
+# This file defines rules for targets: [all|clean].$(PRODUCT)
+PRODUCT := $(CARGO_PROJ)
+# For top Makefile
+PRODUCTS += $(PRODUCT)
+PRODUCT_OBJDIR := $(OBJDIR)/$(PRODIR)
+
+# For top Makefile
+OBJ_SUBDIRS += $(PRODUCT_OBJDIR)
+
+ifeq ($(ARCH),$(TARGET_ARCH))
+CARGO_CROSS_COMPILE_TARGET :=
+else ifeq ($(ARCH),aarch64)
+CARGO_CROSS_COMPILE_TARGET := aarch64-unknown-linux-gnu
+else ifeq ($(ARCH),arm)
+CARGO_CROSS_COMPILE_TARGET := arm-unknown-linux-gnueabihf
+else
+CARGO_CROSS_COMPILE_TARGET :=
+endif
+
+CARGO_CROSS_COMPILE_TARGET_DIR := $(if $(CARGO_CROSS_COMPILE_TARGET),$(CARGO_CROSS_COMPILE_TARGET)/,)
+BINELF := $(PRODUCT_OBJDIR)/$(CARGO_CROSS_COMPILE_TARGET_DIR)debug/$(CARGO_PROJ)
+
+$(BINELF):: CARGO_TARGET_ARG := $(if $(CARGO_CROSS_COMPILE_TARGET),--target $(CARGO_CROSS_COMPILE_TARGET),)
+$(BINELF):: PRODIR := $(PRODIR)
+$(BINELF):: PRODUCT_OBJDIR := $(PRODUCT_OBJDIR)
+$(BINELF):: BUILD_LOG := $(PRODUCT_OBJDIR)/build.log
+$(BINELF): | $(PRODUCT_OBJDIR)
+	@printf "%$(PCOL)s %s\n" "[CARGO]" $@ && printf "%$(PCOL)s %s %s\n" "" "Logs:" $(BUILD_LOG)
+	$(Q)$(CARGO) build --manifest-path $(PRODIR)/Cargo.toml --target-dir $(PRODUCT_OBJDIR) $(CARGO_TARGET_ARG) --jobs $(CORES) > $(BUILD_LOG) 2>&1 || { tail -n 40 $(BUILD_LOG); exit 1; }
+
+all.$(PRODUCT): $(BINELF)
+
+clean.$(PRODUCT):: PRODUCT_OBJDIR := $(PRODUCT_OBJDIR)
+clean.$(PRODUCT):
+	@printf "%$(PCOL)s %s\n" "[RM]" $(PRODUCT_OBJDIR)
+	$(Q)rm -rf $(PRODUCT_OBJDIR)
+
+endif  # ifdef CARGO_PROJ

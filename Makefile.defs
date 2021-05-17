@@ -15,6 +15,7 @@
 #
 _TOPDIR_ := $(shell git rev-parse --show-toplevel)
 Makefile.buildenv := $(_TOPDIR_)/build/Makefile.buildenv
+Makefile.cargo := $(_TOPDIR_)/build/Makefile.cargo
 Makefile.cbin := $(_TOPDIR_)/build/Makefile.cbin
 Makefile.clib := $(_TOPDIR_)/build/Makefile.clib
 Makefile.protobuf := $(_TOPDIR_)/build/Makefile.protobuf
@@ -26,6 +27,7 @@ Makefile.zephyr := $(_TOPDIR_)/build/Makefile.zephyr
 #
 # Common constants
 #
+CORES := $(shell nproc 2>/dev/null || echo 1)
 DEPFLAGS = -MT $@ -MMD -MP -MF $*.Td
 STM32_CFLAGS := -mcpu=cortex-m4 -mlittle-endian -mthumb -Os -ggdb
 # Supported C++ source and header extensions. Excludes .c because
@@ -43,7 +45,7 @@ PCOL := 10
 #
 # All supported rules
 #
-ALL_RULES := STM32_ELF C_LIB C_BIN PROTO_LIB ZEPHYR_APP
+ALL_RULES := STM32_ELF C_LIB C_BIN PROTO_LIB ZEPHYR_APP CARGO_PROJ
 
 #
 # Enumerate name of attributes for each rule to undef them before inclusion
@@ -55,7 +57,8 @@ STM32_ELF_ATTRS := S_SRCS LD_SRC $(COMMON_C_ATTRS)
 C_LIB_ATTRS := I_HDRS STRIP_INC_PREFIX INC_PREFIX $(COMMON_C_ATTRS)
 C_BIN_ATTRS := $(COMMON_C_ATTRS)
 PROTO_LIB_ATTRS := PB_SRCS DEPEND
-ZEPHYR_APP_ATTRS := BOARD
+ZEPHYR_APP_ATTRS := BOARD ZEPHYR_TOOLCHAIN_ARGS
+CARGO_PROJ_ATTRS :=
 ALL_ATTRS := $(sort $(foreach rule,$(ALL_RULES),$($(rule)_ATTRS))) $(COMMON_ATTRS)
 
 
