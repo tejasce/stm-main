@@ -80,6 +80,7 @@ clean.$(PRODUCT):: METADATA_FILE := $(METADATA_FILE)
 clean.$(PRODUCT):
 	@printf "%$(PCOL)s %s\n" "[RM]" "$(LIB_SO)|.a"
 	$(Q)rm -f $(LIB_SO) $(LIB_AR) $(APIHDR) $(C_OBJS) $(C_OBJS:%.o=%.d) $(METADATA_FILE)
-	$(Q)rmdir $(dir $(C_OBJS)) $(INC_PREFIX) $(PRODUCT_OBJDIR) 2>/dev/null || true
+	$(Q)find $(PRODUCT_OBJDIR) -type d -empty -exec rmdir {} \+ 2>/dev/null || true
+	$(Q)rmdir $(PRODUCT_OBJDIR) 2>/dev/null || true
 
 endif  # define C_LIB

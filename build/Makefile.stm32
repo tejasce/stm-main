@@ -77,6 +77,7 @@ clean.$(PRODUCT):: METADATA_FILE := $(METADATA_FILE)
 clean.$(PRODUCT):
 	@printf "%$(PCOL)s %s\n" "[RM]" "$(ELF)|.bin|.hex|.map"
 	$(Q)rm -f $(ELF) $(BIN) $(HEX) $(LD_MAP) $(S_OBJS) $(C_OBJS) $(C_OBJS:%.o=%.d) $(METADATA_FILE)
-	$(Q)rmdir $(dir $(C_OBJS)) $(PRODUCT_OBJDIR) 2>/dev/null || true
+	$(Q)find $(PRODUCT_OBJDIR) -type d -empty -exec rmdir {} \+ 2>/dev/null || true
+	$(Q)rmdir $(PRODUCT_OBJDIR) 2>/dev/null || true
 
 endif  # define STM32_ELF
