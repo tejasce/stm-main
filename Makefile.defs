@@ -151,6 +151,10 @@ ifeq ($(TOPDIR),)
 #
 ifeq ($(MAKECMDGOALS),)
 TARGETS += all.$(2)
+else ifeq ($(filter all clean clean=,$(MAKECMDGOALS)),)
+# Only "all|clean" goals are supported from all dir-levels. Any other goals are
+# simply run from TOPDIR w/o accumulation and conversion for actual targets
+TARGETS := $(MAKECMDGOALS)
 else
 TARGETS += $(MAKECMDGOALS:%=%.$(2))
 endif
@@ -163,7 +167,9 @@ endif
 ifndef DEF_TARGETS
 DEF_TARGETS := 1
 
+ifneq ($(MAKECMDGOALS),$$(TARGETS))
 $(MAKECMDGOALS): $$(TARGETS)
+endif
 $$(TARGETS):
 	$(Q)$$(MAKE) -C $$(_TOPDIR_) --no-print-directory $$(TARGETS)
 endif
