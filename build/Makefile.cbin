@@ -41,9 +41,13 @@ $(BINELF): $(DEP_AR) $(C_OBJS)
 
 all.$(PRODUCT): $(BINELF)
 
+clean.$(PRODUCT):: BINELF := $(BINELF)
+clean.$(PRODUCT):: C_OBJS := $(C_OBJS)
 clean.$(PRODUCT):: PRODUCT_OBJDIR := $(PRODUCT_OBJDIR)
+clean.$(PRODUCT):: METADATA_FILE := $(METADATA_FILE)
 clean.$(PRODUCT):
-	@printf "%$(PCOL)s %s\n" "[RM]" $(PRODUCT_OBJDIR)
-	$(Q)rm -rf $(PRODUCT_OBJDIR)
+	@printf "%$(PCOL)s %s\n" "[RM]" $(BINELF)
+	$(Q)rm -f $(BINELF) $(C_OBJS) $(C_OBJS:%.o=%.d) $(METADATA_FILE)
+	$(Q)rmdir $(dir $(C_OBJS)) $(PRODUCT_OBJDIR) 2>/dev/null || true
 
 endif  # define C_BIN
