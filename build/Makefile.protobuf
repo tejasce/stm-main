@@ -54,9 +54,13 @@ $(LIB_AR): $(DEP_AR) $(PB_CC_OBJS)
 
 all.$(PRODUCT): $(LIB_SO) $(LIB_AR)
 
+clean.$(PRODUCT):: LIB_SO := $(LIB_SO)
+clean.$(PRODUCT):: LIB_AR := $(LIB_AR)
+clean.$(PRODUCT):: PB_CC_OBJS := $(PB_CC_OBJS)
 clean.$(PRODUCT):: PRODUCT_OBJDIR := $(PRODUCT_OBJDIR)
 clean.$(PRODUCT):
-	@printf "%$(PCOL)s %s\n" "[RM]" $(PRODUCT_OBJDIR)
-	$(Q)rm -rf $(PRODUCT_OBJDIR)
+	@printf "%$(PCOL)s %s\n" "[RM]" "$(LIB_SO)|.a"
+	$(Q)rm -f $(LIB_SO) $(LIB_AR) $(PB_CC_OBJS) $(PB_CC_OBJS:%.o=%.d) $(PB_CC_OBJS:%.o=%.cc) $(PB_CC_OBJS:%.o=%.h)
+	$(Q)rmdir $(dir $(PB_CC_OBJS)) $(PRODUCT_OBJDIR) 2>/dev/null || true
 
 endif
