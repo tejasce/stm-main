@@ -104,8 +104,9 @@ $$(foreach ATTR,$(ALL_ATTRS),$$(eval $$(ATTR) := ))
 #
 # While we are here, define ease-of-use target for this directory
 #
-.PHONY: $$(PRODIR) $$(PRODIR)/
-$$(PRODIR) $$(PRODIR)/:
+DIR_TGT := $$(PRODIR) $$(PRODIR)/
+.PHONY: $$(DIR_TGT)
+$$(DIR_TGT):
 	$(Q)$$(MAKE) --no-print-directory -C $$@ $$(if $$(clean),clean,)
 
 include $(1)/Makefile
