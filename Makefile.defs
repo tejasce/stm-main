@@ -102,40 +102,26 @@ $$(foreach RULE,$(ALL_RULES),$$(eval $$(RULE) := ))
 $$(foreach ATTR,$(ALL_ATTRS),$$(eval $$(ATTR) := ))
 
 #
-# While we are here, define ease-of-use target for this directory
+# While we are here, define ease-of-use target for this subdir
+# but only when invoked from TOPDIR to define targets for
+# subdir paths relative to TOPDIR only
 #
+ifneq ($(TOPDIR),)
 DIR_TGT := $$(PRODIR) $$(PRODIR)/
 .PHONY: $$(DIR_TGT)
 $$(DIR_TGT):
 	$(Q)$$(MAKE) --no-print-directory -C $$@ $$(if $$(clean),clean,)
+endif
 
 include $(1)/Makefile
 endef
 
 
 #
-# Wrapper macro to "subdirs" macro. Depending upon which directory "$(MAKE)"
-# is invoked upon, this macro will either simply include subdirectories or
-# recursively find all the "Makefile" from directories below and include them.
+# Wrapper macro to "subdirs" macro to include multiple sub-directories
 #
 define inc_subdir
-ifeq ($(TOPDIR),)
-# This method won't honor if a subdir is present but isn't
-# enlisted in the makefile of the parent dir
-MKFILES += $(shell find $(1) -mindepth 2 -name Makefile)
-
-#
-# Accumulated makefiles need to be included only once;
-# use sort to enumuerate unique ones.
-#
-ifndef INC_MAKEFILE
-INC_MAKEFILE := 1
-$$(foreach makefile,$$(sort $$(MKFILES)),$$(eval include $$(makefile)))
-endif
-
-else
 $$(foreach SUBDIR,$(2:%=$(1)%),$$(eval $$(call subdirs,$$(SUBDIR))))
-endif
 endef
 
 
@@ -167,10 +153,12 @@ endif
 ifndef DEF_TARGETS
 DEF_TARGETS := 1
 
-ifneq ($(MAKECMDGOALS),$$(TARGETS))
-$(MAKECMDGOALS): $$(TARGETS)
-endif
-$$(TARGETS):
+# Establish default goal when invoked from subdir (instead of TOPDIR).
+# Whether goal is specified or not the action remains the same:
+# execute $$(TARGETS) from TOPDIR
+_all_ := $$(if $$(MAKECMDGOALS),$$(MAKECMDGOALS),$$(TARGETS))
+.DEFAULT_GOAL := $$(_all_)
+$$(_all_):
 	$(Q)$$(MAKE) -C $$(_TOPDIR_) --no-print-directory $$(TARGETS)
 endif
 
