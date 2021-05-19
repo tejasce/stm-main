@@ -31,6 +31,7 @@ $(BINELF): | $(PRODUCT_OBJDIR)
 	$(Q)$(CARGO) build --manifest-path $(PRODIR)/Cargo.toml --target-dir $(PRODUCT_OBJDIR) $(CARGO_TARGET_ARG) --jobs $(CORES) > $(BUILD_LOG) 2>&1 || { tail -n 40 $(BUILD_LOG); exit 1; }
 
 all.$(PRODUCT): $(BINELF)
+	@true    # avoid "Nothing to be done for .."
 
 clean.$(PRODUCT):: PRODUCT_OBJDIR := $(PRODUCT_OBJDIR)
 clean.$(PRODUCT):

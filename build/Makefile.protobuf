@@ -53,6 +53,7 @@ $(LIB_AR): $(DEP_AR) $(PB_CC_OBJS)
 	$(Q)$(AR) -c -r -s -o $@ $(filter-out $(CC_H_EXTS_PATT),$^)
 
 all.$(PRODUCT): $(LIB_SO) $(LIB_AR)
+	@true    # avoid "Nothing to be done for .."
 
 clean.$(PRODUCT):: LIB_SO := $(LIB_SO)
 clean.$(PRODUCT):: LIB_AR := $(LIB_AR)
