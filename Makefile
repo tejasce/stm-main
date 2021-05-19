@@ -47,9 +47,12 @@ $(sort $(OBJ_SUBDIRS)):
 all: $(patsubst %,all.%,$(PRODUCTS))
 ifeq ("$(origin ARCH)","command line")
 clean:
+	@printf "%$(PCOL)s %s\n" "[RM]" "$(OBJDIR_PREFIX)$(ARCH)"
 	$(Q)rm -rf $(OBJDIR_PREFIX)$(ARCH)
 else
-clean: $(patsubst %,clean.%,$(PRODUCTS))
+clean:
+	@printf "%$(PCOL)s %s\n" "[RM]" "$(OBJDIR_PREFIX){$(ARCH),firmware}"
+	$(Q)rm -rf $(OBJDIR_PREFIX){$(ARCH),firmware}
 endif
 
 #
@@ -60,6 +63,7 @@ cleanall:
 	$(Q)rm -rf $(OBJDIR_PREFIX)*
 
 clobber: cleanall
+	@printf "%$(PCOL)s %s\n" "[RM]" "cscope files, tags"
 	$(Q)rm -f cscope.* tags
 
 .DEFAULT_GOAL := all
@@ -79,7 +83,7 @@ help:
 	@echo "         help: show this message"
 	@echo "<path>[:prod]: build all $(ARCH) products for <path> and subdirs below"
 	@echo "               if specified, build only the product "prod" in the <path>"
-	@echo "               Specify \"clean=1\" to clean (Supported: all|clean)"
+	@echo "               Specify \"clean=1\" to clean"
 	@echo "               For example, make libs/common"
 	@echo "                            make cmds/common/pb_example:list_people"
 	@echo "                            make libs/common clean=1"
