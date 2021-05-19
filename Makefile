@@ -63,7 +63,7 @@ cleanall:
 	$(Q)rm -rf $(OBJDIR_PREFIX)*
 
 clobber: cleanall
-	@printf "%$(PCOL)s %s\n" "[RM]" "cscope files, tags"
+	@printf "%$(PCOL)s %s\n" "[RM]" "cscope.* tags"
 	$(Q)rm -f cscope.* tags
 
 .DEFAULT_GOAL := all
