@@ -178,7 +178,7 @@ else
 #
 # While we are here, define ease-of-use target for this product
 #
-$(PRODIR)\:$(2): $(if $(clean),clean.$(2),all.$(2))
+$(PRODIR)\:$(2): $(if $(clean),clean,all).$(2)
 
 include $(Makefile.$(1))
 endif
