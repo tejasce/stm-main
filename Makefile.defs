@@ -78,13 +78,7 @@ Q := @
 endif
 
 
-#
-# Macro to include a sub-directory
-#
-define subdirs
-PRODIR := $(1)
-OBJDIR := $(OBJDIR_PREFIX)$(ARCH)
-
+define restore_defaults
 #
 # Set toolchain for the subdir and the ones below it. This can be overridden by
 # each individual directory
@@ -100,6 +94,21 @@ $$(foreach RULE,$(ALL_RULES),$$(eval $$(RULE) := ))
 # Clean the slate: reset attributes for all rules
 #
 $$(foreach ATTR,$(ALL_ATTRS),$$(eval $$(ATTR) := ))
+endef
+
+
+#
+# Macro to include a sub-directory
+#
+define subdirs
+PRODIR := $(1)
+OBJDIR := $(OBJDIR_PREFIX)$(ARCH)
+
+#
+# Clean the slate: undef all rules and their attributes +
+#                  include toolchain for $$(ARCH)
+#
+$$(eval $$(call restore_defaults))
 
 #
 # While we are here, define ease-of-use target for this subdir
@@ -170,14 +179,10 @@ include $(Makefile.$(1))
 endif
 
 #
-# Clean the slate: reset attributes for all rules
+# Clean the slate: undef all rules and their attributes +
+#                  include toolchain for $$(ARCH)
 #
-$$(foreach ATTR,$(ALL_ATTRS),$$(eval $$(ATTR) := ))
-
-#
-# Reset back to original toolchain
-#
-$$(eval $$(call inc_toolchain,$$(ARCH)))
+$$(eval $$(call restore_defaults))
 endef
 
 
