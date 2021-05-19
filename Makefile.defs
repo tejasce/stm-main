@@ -146,9 +146,7 @@ TARGETS += $(MAKECMDGOALS:%=%.$(2))
 endif
 
 #
-# o $$(TARGETS) needs to be defined only once.
-# o $$(TARGETS) is used in the definition since $$@
-#   expansion covers only the first target.
+# $$(TARGETS) needs to be defined only once.
 #
 ifndef DEF_TARGETS
 DEF_TARGETS := 1
