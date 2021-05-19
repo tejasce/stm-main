@@ -158,7 +158,7 @@ TARGETS += $(MAKECMDGOALS:%=%.$(2))
 endif
 
 #
-# $$(TARGETS) needs to be defined only once.
+# Rule to execute $$(TARGETS) needs to be defined only once.
 #
 ifndef DEF_TARGETS
 DEF_TARGETS := 1
