@@ -122,7 +122,7 @@ ifneq ($(TOPDIR),)
 DIR_TGT := $$(PRODIR) $$(PRODIR)/
 .PHONY: $$(DIR_TGT)
 $$(DIR_TGT):
-	$(Q)$$(MAKE) --no-print-directory -C $$@ $$(if $$(clean),clean,)
+	$(Q)$$(MAKE) --no-print-directory -C $$@ $$(if $$(clean),clean,all)
 endif
 
 include $(1)/Makefile
@@ -169,7 +169,7 @@ DEF_TARGETS := 1
 _all_ := $$(if $$(MAKECMDGOALS),$$(MAKECMDGOALS),$$(TARGETS))
 .DEFAULT_GOAL := $$(_all_)
 $$(_all_):
-	$(Q)$$(MAKE) -C $$(_TOPDIR_) --no-print-directory $$(TARGETS)
+	$(Q)$$(MAKE) --no-print-directory -C $$(_TOPDIR_) $$(TARGETS)
 endif
 
 else
