@@ -78,6 +78,10 @@ Q := @
 endif
 
 
+#
+# Macro to clean the slate:
+# Undef all rules and their attributes + include toolchain for $$(ARCH)
+#
 define restore_defaults
 #
 # Set toolchain for the subdir and the ones below it. This can be overridden by
@@ -105,8 +109,7 @@ PRODIR := $(1)
 OBJDIR := $(OBJDIR_PREFIX)$(ARCH)
 
 #
-# Clean the slate: undef all rules and their attributes +
-#                  include toolchain for $$(ARCH)
+# Start out fresh
 #
 $$(eval $$(call restore_defaults))
 
@@ -179,8 +182,7 @@ include $(Makefile.$(1))
 endif
 
 #
-# Clean the slate: undef all rules and their attributes +
-#                  include toolchain for $$(ARCH)
+# Reset for the next rule inclusion
 #
 $$(eval $$(call restore_defaults))
 endef
