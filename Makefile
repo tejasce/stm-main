@@ -47,9 +47,12 @@ $(sort $(OBJ_SUBDIRS)):
 all: $(patsubst %,all.%,$(PRODUCTS))
 ifeq ("$(origin ARCH)","command line")
 clean:
+	@printf "%$(PCOL)s %s\n" "[RM]" "$(OBJDIR_PREFIX)$(ARCH)"
 	$(Q)rm -rf $(OBJDIR_PREFIX)$(ARCH)
 else
-clean: $(patsubst %,clean.%,$(PRODUCTS))
+clean:
+	@printf "%$(PCOL)s %s\n" "[RM]" "$(OBJDIR_PREFIX){$(ARCH),firmware}"
+	$(Q)rm -rf $(OBJDIR_PREFIX){$(ARCH),firmware}
 endif
 
 #
@@ -60,6 +63,7 @@ cleanall:
 	$(Q)rm -rf $(OBJDIR_PREFIX)*
 
 clobber: cleanall
+	@printf "%$(PCOL)s %s\n" "[RM]" "cscope.* tags"
 	$(Q)rm -f cscope.* tags
 
 .DEFAULT_GOAL := all
@@ -72,19 +76,25 @@ include $(Makefile.ros)
 
 help:
 	@echo "Build Targets"
-	@echo "         all: build all $(ARCH) products (default)"
-	@echo "       clean: remove all previously built $(ARCH) products"
-	@echo "    cleanall: remove all products for all targets architectues"
-	@echo "     clobber: cleanall + remove cscope/ctags"
-	@echo "        help: show this message"
+	@echo "          all: build all $(ARCH) products (default)"
+	@echo "        clean: remove all previously built $(ARCH) products"
+	@echo "     cleanall: remove all products for all targets architectues"
+	@echo "      clobber: cleanall + remove cscope/ctags"
+	@echo "         help: show this message"
+	@echo "<path>[:prod]: build all $(ARCH) products for <path> and subdirs below"
+	@echo "               if specified, build only the product "prod" in the <path>"
+	@echo "               Specify \"clean=1\" to clean"
+	@echo "               For example, make libs/common"
+	@echo "                            make cmds/common/pb_example:list_people"
+	@echo "                            make libs/common clean=1"
 	@echo
 	@$(MAKE) --no-print-directory help.buildenv
 	@echo
 	@echo "Commmand-line overrides"
-	@echo "        ARCH: build for a target architecture"
-	@echo "              Supported: $(SUPPORTED_ARCHS) [Default: $(TARGET_ARCH)]"
-	@echo "     VERBOSE: build verbosity"
-	@echo "              On/Off if defined/undefined [Default: not defined]"
+	@echo "         ARCH: build for a target architecture"
+	@echo "               Supported: $(SUPPORTED_ARCHS) [Default: $(TARGET_ARCH)]"
+	@echo "      VERBOSE: build verbosity"
+	@echo "               On/Off if defined/undefined [Default: not defined]"
 	@echo
 	@echo "Other supported build systems (outside of default build system)"
-	@echo "         ROS: make help.ros"
+	@echo "          ROS: make help.ros"

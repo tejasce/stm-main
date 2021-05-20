@@ -38,6 +38,7 @@ $(ELF): $(ZEPHYR_APP_DEP_FILES) | $(BOARD_PRODUCT_OBJDIR)
 	$(Q)ZEPHYR_BASE=$(ZEPHYR_HOME)/zephyr $(ZEPHYR_TOOLCHAIN_ARGS) $(WEST) build $(PRODIR) -b $(BOARD) --build-dir $(realpath $(BOARD_PRODUCT_OBJDIR)) > $(BUILD_LOG) 2>&1 || { tail -n 40 $(BUILD_LOG); exit 1; }
 
 all.$(PRODUCT): $(ELF)
+	@true    # avoid "Nothing to be done for .."
 
 clean.$(PRODUCT):: PRODUCT_OBJDIR := $(PRODUCT_OBJDIR)
 clean.$(PRODUCT):: BOARD_PRODUCT_OBJDIR := $(BOARD_PRODUCT_OBJDIR)

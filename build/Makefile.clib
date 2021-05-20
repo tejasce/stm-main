@@ -70,9 +70,16 @@ $(LIB_AR): $(DEP_AR) $(APIHDR) $(C_OBJS)
 
 all.$(PRODUCT): $(LIB_SO) $(LIB_AR)
 
+clean.$(PRODUCT):: LIB_SO := $(LIB_SO)
+clean.$(PRODUCT):: LIB_AR := $(LIB_AR)
+clean.$(PRODUCT):: APIHDR := $(APIHDR)
+clean.$(PRODUCT):: C_OBJS := $(C_OBJS)
 clean.$(PRODUCT):: PRODUCT_OBJDIR := $(PRODUCT_OBJDIR)
+clean.$(PRODUCT):: INC_PREFIX := $(PRODUCT_OBJDIR)/$(INC_PREFIX)
+clean.$(PRODUCT):: METADATA_FILE := $(METADATA_FILE)
 clean.$(PRODUCT):
-	@printf "%$(PCOL)s %s\n" "[RM]" $(PRODUCT_OBJDIR)
-	$(Q)rm -rf $(PRODUCT_OBJDIR)
+	@printf "%$(PCOL)s %s\n" "[RM]" "$(LIB_SO)|.a"
+	$(Q)rm -f $(LIB_SO) $(LIB_AR) $(APIHDR) $(C_OBJS) $(C_OBJS:%.o=%.d) $(METADATA_FILE)
+	$(Q)$(call del_empty_dirs,$(PRODUCT_OBJDIR))
 
 endif  # define C_LIB

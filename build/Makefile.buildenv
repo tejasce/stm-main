@@ -70,7 +70,7 @@ rmenv: stopenv
 #
 help.buildenv:
 	@echo "Build environment targets"
-	@echo "         env: Run a \"buildenv shell\" for this workspace"
-	@echo "       rmenv: Remove existing build-environment (must exit \"buildenv shell\" first)"
+	@echo "          env: Run a \"buildenv shell\" for this workspace"
+	@echo "        rmenv: Remove existing build-environment (must exit \"buildenv shell\" first)"
 
 .PHONY: mkenv stopenv

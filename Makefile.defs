@@ -79,12 +79,10 @@ endif
 
 
 #
-# Macro to include a sub-directory
+# Macro to clean the slate:
+# Undef all rules and their attributes + include toolchain for $$(ARCH)
 #
-define subdirs
-PRODIR := $(1)
-OBJDIR := $(OBJDIR_PREFIX)$(ARCH)
-
+define restore_defaults
 #
 # Set toolchain for the subdir and the ones below it. This can be overridden by
 # each individual directory
@@ -100,34 +98,42 @@ $$(foreach RULE,$(ALL_RULES),$$(eval $$(RULE) := ))
 # Clean the slate: reset attributes for all rules
 #
 $$(foreach ATTR,$(ALL_ATTRS),$$(eval $$(ATTR) := ))
+endef
+
+
+#
+# Macro to include a sub-directory
+#
+define subdirs
+PRODIR := $(1)
+OBJDIR := $(OBJDIR_PREFIX)$(ARCH)
+
+#
+# Start out fresh
+#
+$$(eval $$(call restore_defaults))
+
+#
+# While we are here, define ease-of-use target for this subdir
+# but only when invoked from TOPDIR to define targets for
+# subdir paths relative to TOPDIR only
+#
+ifneq ($(TOPDIR),)
+DIR_TGT := $$(PRODIR) $$(PRODIR)/
+.PHONY: $$(DIR_TGT)
+$$(DIR_TGT):
+	$(Q)$$(MAKE) --no-print-directory -C $$@ $$(if $$(clean),clean,all)
+endif
 
 include $(1)/Makefile
 endef
 
 
 #
-# Wrapper macro to "subdirs" macro. Depending upon which directory "$(MAKE)"
-# is invoked upon, this macro will either simply include subdirectories or
-# recursively find all the "Makefile" from directories below and include them.
+# Wrapper macro to "subdirs" macro to include multiple sub-directories
 #
 define inc_subdir
-ifeq ($(TOPDIR),)
-# This method won't honor if a subdir is present but isn't
-# enlisted in the makefile of the parent dir
-MKFILES += $(shell find $(1) -mindepth 2 -name Makefile)
-
-#
-# Accumulated makefiles need to be included only once;
-# use sort to enumuerate unique ones.
-#
-ifndef INC_MAKEFILE
-INC_MAKEFILE := 1
-$$(foreach makefile,$$(sort $$(MKFILES)),$$(eval include $$(makefile)))
-endif
-
-else
 $$(foreach SUBDIR,$(2:%=$(1)%),$$(eval $$(call subdirs,$$(SUBDIR))))
-endif
 endef
 
 
@@ -143,36 +149,42 @@ ifeq ($(TOPDIR),)
 #
 ifeq ($(MAKECMDGOALS),)
 TARGETS += all.$(2)
+else ifeq ($(filter all clean,$(MAKECMDGOALS)),)
+# Only "all|clean" goals are supported from all dir-levels. Any other goals are
+# simply run from TOPDIR w/o accumulation and conversion for actual targets
+TARGETS := $(MAKECMDGOALS)
 else
 TARGETS += $(MAKECMDGOALS:%=%.$(2))
 endif
 
 #
-# o $$(TARGETS) needs to be defined only once.
-# o $$(TARGETS) is used in the definition since $$@
-#   expansion covers only the first target.
+# Rule to execute $$(TARGETS) needs to be defined only once.
 #
 ifndef DEF_TARGETS
 DEF_TARGETS := 1
 
-$(MAKECMDGOALS): $$(TARGETS)
-$$(TARGETS):
-	$(Q)$$(MAKE) -C $$(_TOPDIR_) --no-print-directory $$(TARGETS)
+# Establish default goal when invoked from subdir (instead of TOPDIR).
+# Whether goal is specified or not the action remains the same:
+# execute $$(TARGETS) from TOPDIR
+_all_ := $$(if $$(MAKECMDGOALS),$$(MAKECMDGOALS),$$(TARGETS))
+.DEFAULT_GOAL := $$(_all_)
+$$(_all_):
+	$(Q)$$(MAKE) --no-print-directory -C $$(_TOPDIR_) $$(TARGETS)
 endif
 
 else
+#
+# While we are here, define ease-of-use target for this product
+#
+$(PRODIR)\:$(2): $(if $(clean),clean,all).$(2)
+
 include $(Makefile.$(1))
 endif
 
 #
-# Clean the slate: reset attributes for all rules
+# Reset for the next rule inclusion
 #
-$$(foreach ATTR,$(ALL_ATTRS),$$(eval $$(ATTR) := ))
-
-#
-# Reset back to original toolchain
-#
-$$(eval $$(call inc_toolchain,$$(ARCH)))
+$$(eval $$(call restore_defaults))
 endef
 
 
@@ -267,4 +279,16 @@ clean_$$(METADATA_FILE_TMP):
 	@rm -f $$(METADATA_FILE_TMP)
 
 $(C_OBJS): $$(METADATA_FILE)
+endef
+
+
+#
+# Simple macro that implements BASH method to iteratively delete empty dirs
+#
+define del_empty_dirs
+	while true; do \
+		empty_dirs=$$(find $(1) -type d -empty 2>/dev/null); \
+		[ -z "$$empty_dirs" ] && break; \
+		rmdir $$empty_dirs 2>/dev/null || true; \
+	done;
 endef
