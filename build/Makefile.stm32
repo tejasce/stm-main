@@ -79,4 +79,7 @@ clean.$(PRODUCT):
 	$(Q)rm -f $(ELF) $(BIN) $(HEX) $(LD_MAP) $(S_OBJS) $(C_OBJS) $(C_OBJS:%.o=%.d) $(METADATA_FILE)
 	$(Q)$(call del_empty_dirs,$(PRODUCT_OBJDIR))
 
+# Add ease-of-use "flash" target to program the product on a [ST-Micro] board
+$(eval $(call add_flash_tgt,flash.$(PRODUCT),$(BIN),$(BIN)))
+
 endif  # define STM32_ELF

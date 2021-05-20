@@ -84,9 +84,11 @@ help:
 	@echo "<path>[:prod]: build all $(ARCH) products for <path> and subdirs below"
 	@echo "               if specified, build only the product "prod" in the <path>"
 	@echo "               Specify \"clean=1\" to clean"
+	@echo "               Specify \"flash=1\" to program f/w binary (when applicable)"
 	@echo "               For example, make libs/common"
 	@echo "                            make cmds/common/pb_example:list_people"
 	@echo "                            make libs/common clean=1"
+	@echo "                            make firmware/zephyr/hello_world:hello_world.nucleo_f401re flash=1"
 	@echo
 	@$(MAKE) --no-print-directory help.buildenv
 	@echo
@@ -95,6 +97,8 @@ help:
 	@echo "               Supported: $(SUPPORTED_ARCHS) [Default: $(TARGET_ARCH)]"
 	@echo "      VERBOSE: build verbosity"
 	@echo "               On/Off if defined/undefined [Default: not defined]"
+	@echo "   DEV_SERIAL: s/n# of a st-link programmer (from \"st-info --probe\")"
+	@echo "               Useful when multiple boards are connected [Default: none]"
 	@echo
 	@echo "Other supported build systems (outside of default build system)"
 	@echo "          ROS: make help.ros"

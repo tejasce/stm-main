@@ -40,7 +40,7 @@ CC_H_EXTS_PATT := $(CC_H_EXTS:%=\%%)
 PROTOBUF_CFLAGS := -pthread -I/usr/local/$(ARCH)/include
 PROTOBUF_LFLAGS := -L/usr/local/$(ARCH)/lib -lprotobuf -lpthread
 # Number of colums to print at start of line in build output
-PCOL := 10
+PCOL := 12
 
 #
 # All supported rules
@@ -174,9 +174,11 @@ endif
 
 else
 #
-# While we are here, define ease-of-use target for this product
+# While we are here, define ease-of-use target for this product.
+# "flash" target is applicable only to specific products and hence
+# defined only here
 #
-$(PRODIR)\:$(2): $(if $(clean),clean,all).$(2)
+$(PRODIR)\:$(2): $(if $(clean),clean,$(if $(flash),flash,all)).$(2)
 
 include $(Makefile.$(1))
 endif
@@ -291,4 +293,20 @@ define del_empty_dirs
 		[ -z "$$empty_dirs" ] && break; \
 		rmdir $$empty_dirs 2>/dev/null || true; \
 	done;
+endef
+
+
+#
+# Common macro to add "flash" target for STM32_ELF and ZEPHYR_APP
+# It currently assumes the ST-Micro boards and hence uses st-flash
+# [in] - target name, target dependency, path-to-fw-binary
+#
+define add_flash_tgt
+$(1):: SUDO := $(if $(filter Linux,$(shell uname)),sudo,)
+$(1):: DEV_SR := $(if $(DEV_SERIAL),--serial $(DEV_SERIAL),)
+$(1): $(2)
+	@printf "%$(PCOL)s %s\n" "[ST-FLASH]" "$(3)"
+	$(Q)$$(SUDO) st-flash $$(DEV_SR) --connect-under-reset erase && \
+	$$(SUDO) st-flash $$(DEV_SR) --connect-under-reset write $(3) 0x8000000 && \
+	$$(SUDO) st-flash $$(DEV_SR) --connect-under-reset reset
 endef

@@ -47,4 +47,7 @@ clean.$(PRODUCT):
 	$(Q)rm -rf $(BOARD_PRODUCT_OBJDIR)
 	$(Q)rmdir $(PRODUCT_OBJDIR) 2>/dev/null || true
 
+# Add ease-of-use "flash" target to program the product on a [ST-Micro] board
+$(eval $(call add_flash_tgt,flash.$(PRODUCT),$(ELF),$(ELF:%.elf=%.bin)))
+
 endif  # ifdef ZEPHYR_APP
