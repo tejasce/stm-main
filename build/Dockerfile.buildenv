@@ -148,6 +148,7 @@ RUN apt-get update && \
 
 # Global buildenv wide settings
 ENV VER=
+ENV ZEPHYR_BASE=$ZEPHYR_HOME/zephyr
 ENV PATH=$CARGO_HOME/bin:$PATH
 
 # Add "this" user to buildenv image
