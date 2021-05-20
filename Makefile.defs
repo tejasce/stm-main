@@ -304,9 +304,11 @@ endef
 define add_flash_tgt
 $(1):: SUDO := $(if $(filter Linux,$(shell uname)),sudo,)
 $(1):: DEV_SR := $(if $(DEV_SERIAL),--serial $(DEV_SERIAL),)
+$(1):: ST_FLASH := $$(SUDO) st-flash $$(DEV_SR) --connect-under-reset
 $(1): $(2)
 	@printf "%$(PCOL)s %s\n" "[ST-FLASH]" "$(3)"
-	$(Q)$$(SUDO) st-flash $$(DEV_SR) --connect-under-reset erase && \
-	$$(SUDO) st-flash $$(DEV_SR) --connect-under-reset write $(3) 0x8000000 && \
-	$$(SUDO) st-flash $$(DEV_SR) --connect-under-reset reset
+	$(Q)if [ -z "$$(reset_only)" ]; then \
+		$$(ST_FLASH) erase && $$(ST_FLASH) write $(3) 0x8000000; \
+	fi && \
+	echo "$$(ST_FLASH) reset"
 endef
