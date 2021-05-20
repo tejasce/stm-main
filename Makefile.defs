@@ -289,6 +289,6 @@ define del_empty_dirs
 	while true; do \
 		empty_dirs=$$(find $(1) -type d -empty 2>/dev/null); \
 		[ -z "$$empty_dirs" ] && break; \
-		rmdir $$empty_dirs; \
+		rmdir $$empty_dirs 2>/dev/null || true; \
 	done;
 endef
