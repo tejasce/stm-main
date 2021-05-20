@@ -310,5 +310,5 @@ $(1): $(2)
 	$(Q)if [ -z "$$(reset_only)" ]; then \
 		$$(ST_FLASH) erase && $$(ST_FLASH) write $(3) 0x8000000; \
 	fi && \
-	echo "$$(ST_FLASH) reset"
+	$$(ST_FLASH) reset
 endef
