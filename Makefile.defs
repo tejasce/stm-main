@@ -280,3 +280,15 @@ clean_$$(METADATA_FILE_TMP):
 
 $(C_OBJS): $$(METADATA_FILE)
 endef
+
+
+#
+# Simple macro that implements BASH method to iteratively delete empty dirs
+#
+define del_empty_dirs
+	while true; do \
+		empty_dirs=$$(find $(1) -type d -empty 2>/dev/null); \
+		[ -z "$$empty_dirs" ] && break; \
+		rmdir $$empty_dirs; \
+	done;
+endef

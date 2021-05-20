@@ -62,7 +62,6 @@ clean.$(PRODUCT):: PRODUCT_OBJDIR := $(PRODUCT_OBJDIR)
 clean.$(PRODUCT):
 	@printf "%$(PCOL)s %s\n" "[RM]" "$(LIB_SO)|.a"
 	$(Q)rm -f $(LIB_SO) $(LIB_AR) $(PB_CC_OBJS) $(PB_CC_OBJS:%.o=%.d) $(PB_CC_OBJS:%.o=%.cc) $(PB_CC_OBJS:%.o=%.h)
-	$(Q)find $(PRODUCT_OBJDIR) -type d -empty -exec rmdir {} \+ 2>/dev/null || true
-	$(Q)rmdir $(PRODUCT_OBJDIR) 2>/dev/null || true
+	$(Q)$(call del_empty_dirs,$(PRODUCT_OBJDIR))
 
 endif

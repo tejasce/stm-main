@@ -48,7 +48,6 @@ clean.$(PRODUCT):: METADATA_FILE := $(METADATA_FILE)
 clean.$(PRODUCT):
 	@printf "%$(PCOL)s %s\n" "[RM]" $(BINELF)
 	$(Q)rm -f $(BINELF) $(C_OBJS) $(C_OBJS:%.o=%.d) $(METADATA_FILE)
-	$(Q)find $(PRODUCT_OBJDIR) -type d -empty -exec rmdir {} \+ 2>/dev/null || true
-	$(Q)rmdir $(PRODUCT_OBJDIR) 2>/dev/null || true
+	$(Q)$(call del_empty_dirs,$(PRODUCT_OBJDIR))
 
 endif  # define C_BIN
