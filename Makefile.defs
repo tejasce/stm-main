@@ -246,9 +246,9 @@ endef
 #         Dependency LFLAGS: $(DEP_LD)
 #
 define eval_clib_deps
-DEPDIR := $$(foreach dep,$$(DEPEND),$$(firstword $$(subst :, ,$$(dep))))
+DEPDIR := $$(foreach dep,$$(DEPEND),$$(firstword $$(subst :, ,$$(dep)))) $$(PRODIR)
 DEPTGT := $$(foreach dep,$$(DEPEND),$$(lastword $$(subst :, ,$$(dep))))
-DEP_SO := $$(foreach dep,$$(DEPEND),$$(patsubst %,$$(OBJDIR)/%.so,$$(subst :,/lib,$$(dep))))
+DEP_SO := $$(foreach dep,$$(DEPEND),$$(patsubst %,$$(OBJDIR)/%.so,$$(if $$(firstword $$(patsubst :%,,$$(dep))),,$$(PRODIR))$$(subst :,/lib,$$(dep))))
 DEP_AR := $$(DEP_SO:%.so=%.a)
 DEPINC := $$(DEPDIR:%=-I$$(OBJDIR)/%)
 DEP_LD := $$(DEPDIR:%=-L$$(OBJDIR)/%)
