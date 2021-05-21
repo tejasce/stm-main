@@ -24,7 +24,7 @@ LFLAGS += $(DEP_LD)
 CXXFLAGS += --std=c++17
 
 # Add targets to detect change in C flags
-$(eval $(call cflags_change_tgt,$(C_BIN)))
+$(eval $(call cflags_change_tgt,cbin,$(C_BIN)))
 
 # Add targets for each .o file
 $(eval $(call add_c_obj_tgts,$(C_SRCS:%=$(PRODIR)/%)))

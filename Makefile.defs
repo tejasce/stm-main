@@ -267,7 +267,7 @@ define cflags_change_tgt
 # List of flags to detect change in
 DIFF_FLAGS := CFLAGS LFLAGS CXXFLAGS
 
-METADATA_FILE := $(PRODUCT_OBJDIR)/metadata.$(1).mk
+METADATA_FILE := $(PRODUCT_OBJDIR)/metadata.$(1)__$(2).mk
 METADATA_FILE_TMP := $$(METADATA_FILE:%=%.tmp)
 
 $$(METADATA_FILE):: CFLAGS := $(CFLAGS)
@@ -277,7 +277,7 @@ $$(METADATA_FILE):: METADATA_FILE_TMP := $$(METADATA_FILE_TMP)
 $$(METADATA_FILE): clean_$$(METADATA_FILE_TMP) | $(PRODUCT_OBJDIR)
 	$$(foreach flag,$$(DIFF_FLAGS),$$(shell eval "echo $$(flag) := $$($$(flag)) >> $$(METADATA_FILE_TMP)"))
 	@if [ ! -f $$@ ] || ! diff $$@ $$(METADATA_FILE_TMP) >/dev/null; then \
-		[ -f $$@ ] && printf "%$(PCOL)s %s\n" "[=>]" "$$(@D)/$(1) [flags changed]"; \
+		[ -f $$@ ] && printf "%$(PCOL)s %s\n" "[=>]" "$$(@D)/$(2) [flags changed]"; \
 		mv $$(METADATA_FILE_TMP) $$@; \
 	else \
 		rm $$(METADATA_FILE_TMP); \
