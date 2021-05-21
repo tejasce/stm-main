@@ -1,9 +1,6 @@
 ifdef C_BIN
 
 # This file defines rules for targets: [all|clean].$(PRODUCT)
-PRODUCT := $(C_BIN)
-# For top Makefile
-PRODUCTS += $(PRODUCT)
 
 PRODUCT_OBJDIR := $(OBJDIR)/$(PRODIR)
 

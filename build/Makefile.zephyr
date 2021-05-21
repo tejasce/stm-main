@@ -3,19 +3,17 @@ ifdef ZEPHYR_APP
 # Override to use appropriate $(OBJDIR) location (toolchain is already selected by buildenv)
 $(eval $(call inc_toolchain,firmware))
 
+# This file defines rules for targets: [all|clean].$(PRODUCT)
+
+PRODUCT_OBJDIR := $(OBJDIR)/$(PRODIR)
+BOARD_PRODUCT_OBJDIR := $(PRODUCT_OBJDIR)/$(BOARD)
+
 # Use arm-none-eabi- toolchain to build firmware unless explictly specified
 # in product makefile as one or more space sparated BASH key=val
 ifeq ($(ZEPHYR_TOOLCHAIN_ARGS),)
 ZEPHYR_TOOLCHAIN_ARGS := ZEPHYR_TOOLCHAIN_VARIANT=cross-compile
 ZEPHYR_TOOLCHAIN_ARGS += CROSS_COMPILE=/usr/bin/arm-none-eabi-
 endif
-
-# This file defines rules for targets: [all|clean].$(PRODUCT)
-PRODUCT := $(ZEPHYR_APP)
-# For top Makefile
-PRODUCTS += $(PRODUCT)
-PRODUCT_OBJDIR := $(OBJDIR)/$(PRODIR)
-BOARD_PRODUCT_OBJDIR := $(PRODUCT_OBJDIR)/$(BOARD)
 
 # For top Makefile
 OBJ_SUBDIRS += $(BOARD_PRODUCT_OBJDIR)

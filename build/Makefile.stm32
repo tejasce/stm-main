@@ -4,9 +4,7 @@ ifdef STM32_ELF
 $(eval $(call inc_toolchain,firmware))
 
 # This file defines rules for targets: [all|clean].$(PRODUCT)
-PRODUCT := $(STM32_ELF)
-# For top Makefile
-PRODUCTS += $(PRODUCT)
+
 PRODUCT_OBJDIR := $(OBJDIR)/$(PRODIR)
 
 ELF := $(PRODUCT_OBJDIR)/$(STM32_ELF).elf
