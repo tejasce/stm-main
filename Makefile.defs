@@ -105,25 +105,26 @@ endef
 # Macro to include a sub-directory
 #
 define subdirs
-PRODIR := $(1)
-OBJDIR := $(OBJDIR_PREFIX)$(ARCH)
-
 #
-# Start out fresh
-#
-$$(eval $$(call restore_defaults))
-
-#
-# While we are here, define ease-of-use target for this subdir
-# but only when invoked from TOPDIR to define targets for
-# subdir paths relative to TOPDIR only
+# While including this subdir also define ease-of-use target for it
+# but only when invoked from TOPDIR to define a target for subdir's
+# path relative to TOPDIR only
 #
 ifneq ($(TOPDIR),)
+PRODIR := $(1)
 DIR_TGT := $$(PRODIR) $$(PRODIR)/
 .PHONY: $$(DIR_TGT)
 $$(DIR_TGT):
 	$(Q)$$(MAKE) --no-print-directory -C $$@ $$(if $$(clean),clean,all)
+
+else
+PRODIR := $(shell realpath . --relative-to $(_TOPDIR_))/$(subst ./,,$(1))
 endif
+
+#
+# Reset state before including this subdir
+#
+$$(eval $$(call restore_defaults))
 
 include $(1)/Makefile
 endef
@@ -141,20 +142,26 @@ endef
 # Wrapper macro to include "Makefile.<rule>".
 #
 define inc_rule
-ifeq ($(TOPDIR),)
+# When inc_rule() called from bottom level subdir
+PRODIR ?= $(shell realpath . --relative-to $(_TOPDIR_))
+# Prepend path and rule type to the product name to make it unique in that path
+PRODUCT := $$(PRODIR)__$(1)__$(2)
+# For top Makefile
+PRODUCTS += $$(PRODUCT)
 
+ifeq ($(TOPDIR),)
 #
 # inc_rule() may be called more than once in a Makefile and each
 # time, we accumulate goals to be built by updating TARGETS
 #
 ifeq ($(MAKECMDGOALS),)
-TARGETS += all.$(2)
+$$(eval TARGETS += all.$$(PRODUCT))
 else ifeq ($(filter all clean,$(MAKECMDGOALS)),)
 # Only "all|clean" goals are supported from all dir-levels. Any other goals are
 # simply run from TOPDIR w/o accumulation and conversion for actual targets
 TARGETS := $(MAKECMDGOALS)
 else
-TARGETS += $(MAKECMDGOALS:%=%.$(2))
+$$(eval TARGETS += $$(MAKECMDGOALS:%=%.$$(PRODUCT)))
 endif
 
 #
@@ -178,7 +185,7 @@ else
 # "flash" target is applicable only to specific products and hence
 # defined only here
 #
-$(PRODIR)\:$(2): $(if $(clean),clean,$(if $(flash),flash,all)).$(2)
+$(PRODIR)\:$(2): $$(if $$(clean),clean,$$(if $$(flash),flash,all)).$$(PRODUCT)
 
 include $(Makefile.$(1))
 endif
@@ -239,9 +246,9 @@ endef
 #         Dependency LFLAGS: $(DEP_LD)
 #
 define eval_clib_deps
-DEPDIR := $$(foreach dep,$$(DEPEND),$$(firstword $$(subst :, ,$$(dep))))
+DEPDIR := $$(foreach dep,$$(DEPEND),$$(firstword $$(subst :, ,$$(dep)))) $$(PRODIR)
 DEPTGT := $$(foreach dep,$$(DEPEND),$$(lastword $$(subst :, ,$$(dep))))
-DEP_SO := $$(foreach dep,$$(DEPEND),$$(patsubst %,$$(OBJDIR)/%.so,$$(subst :,/lib,$$(dep))))
+DEP_SO := $$(foreach dep,$$(DEPEND),$$(patsubst %,$$(OBJDIR)/%.so,$$(if $$(firstword $$(patsubst :%,,$$(dep))),,$$(PRODIR))$$(subst :,/lib,$$(dep))))
 DEP_AR := $$(DEP_SO:%.so=%.a)
 DEPINC := $$(DEPDIR:%=-I$$(OBJDIR)/%)
 DEP_LD := $$(DEPDIR:%=-L$$(OBJDIR)/%)
@@ -260,7 +267,7 @@ define cflags_change_tgt
 # List of flags to detect change in
 DIFF_FLAGS := CFLAGS LFLAGS CXXFLAGS
 
-METADATA_FILE := $(PRODUCT_OBJDIR)/metadata.$(1).mk
+METADATA_FILE := $(PRODUCT_OBJDIR)/metadata.$(1)__$(2).mk
 METADATA_FILE_TMP := $$(METADATA_FILE:%=%.tmp)
 
 $$(METADATA_FILE):: CFLAGS := $(CFLAGS)
@@ -270,7 +277,7 @@ $$(METADATA_FILE):: METADATA_FILE_TMP := $$(METADATA_FILE_TMP)
 $$(METADATA_FILE): clean_$$(METADATA_FILE_TMP) | $(PRODUCT_OBJDIR)
 	$$(foreach flag,$$(DIFF_FLAGS),$$(shell eval "echo $$(flag) := $$($$(flag)) >> $$(METADATA_FILE_TMP)"))
 	@if [ ! -f $$@ ] || ! diff $$@ $$(METADATA_FILE_TMP) >/dev/null; then \
-		[ -f $$@ ] && printf "%$(PCOL)s %s\n" "[=>]" "$$(@D)/$(1) [flags changed]"; \
+		[ -f $$@ ] && printf "%$(PCOL)s %s\n" "[=>]" "$$(@D)/$(2) [flags changed]"; \
 		mv $$(METADATA_FILE_TMP) $$@; \
 	else \
 		rm $$(METADATA_FILE_TMP); \

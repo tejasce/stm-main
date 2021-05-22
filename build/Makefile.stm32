@@ -4,9 +4,7 @@ ifdef STM32_ELF
 $(eval $(call inc_toolchain,firmware))
 
 # This file defines rules for targets: [all|clean].$(PRODUCT)
-PRODUCT := $(STM32_ELF)
-# For top Makefile
-PRODUCTS += $(PRODUCT)
+
 PRODUCT_OBJDIR := $(OBJDIR)/$(PRODIR)
 
 ELF := $(PRODUCT_OBJDIR)/$(STM32_ELF).elf
@@ -33,7 +31,7 @@ LFLAGS += -Wl,--gc-sections -Wl,-n,--print-map,--cref,-Map,$(LD_MAP)
 LFLAGS += $(DEP_LD)
 
 # Add targets to detect change in C flags
-$(eval $(call cflags_change_tgt,$(STM32_ELF)))
+$(eval $(call cflags_change_tgt,stm32,$(STM32_ELF)))
 
 # Add targets for each .o file
 $(eval $(call add_c_obj_tgts,$(C_SRCS:%=$(PRODIR)/%)))

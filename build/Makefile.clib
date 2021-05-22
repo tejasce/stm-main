@@ -1,9 +1,6 @@
 ifdef C_LIB
 
 # This file defines rules for targets: [all|clean].$(PRODUCT)
-PRODUCT := $(C_LIB)
-# For top Makefile
-PRODUCTS += $(PRODUCT)
 
 PRODUCT_OBJDIR := $(OBJDIR)/$(PRODIR)
 
@@ -30,7 +27,7 @@ LFLAGS += $(DEP_LD)
 CXXFLAGS += --std=c++17
 
 # Add targets to detect change in C flags
-$(eval $(call cflags_change_tgt,$(C_LIB)))
+$(eval $(call cflags_change_tgt,clib,$(C_LIB)))
 
 # Add targets for each .o file
 $(eval $(call add_c_obj_tgts,$(C_SRCS:%=$(PRODIR)/%)))
