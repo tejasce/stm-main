@@ -142,6 +142,7 @@ RUN wget https://github.com/zephyrproject-rtos/zephyr/archive/refs/tags/zephyr-v
 
 RUN apt-get update && \
     apt-get install -y \
+        clang-format \
         ninja-build && \
     apt-get clean all && \
         rm -rf /var/lib/apt/lists/*
