@@ -34,18 +34,24 @@ print_clang_format_style()
 clang_format_files()
 {
     local files=$1
+    local testing=$2
     local rc=0
 
-    local outfile=
+    local outfile= clang_format_cmd=
     for file in $files; do
-        outfile=$(clang-format -style="$(print_clang_format_style $file)" $file)
-        if [ "$outfile" != "$(cat $file)" ]; then
+        clang_format_cmd="clang-format -style='$(print_clang_format_style $file)' $file"
+        if ! diff -qs <(eval "$clang_format_cmd") <(cat "$file") >/dev/null; then
             if [ "$DRY_RUN" = "true" ]; then
                 echo "Reformatting needed for $file.."
                 [ $rc -eq 0 ] && rc=1
             else
+                outfile=$(eval "$clang_format_cmd")
                 echo "Reformatting $file.."
-                echo "$outfile" > "$file"
+                if [ "$testing" = "true" ]; then
+                    echo "$outfile"
+                else
+                    echo "$outfile" > "$file"
+                fi;
             fi
         fi
     done
@@ -87,7 +93,7 @@ print_help()
 {
     local prog_name=$(basename "$1")
     HELPSTR=$(cat <<- EOM
-$prog_name [-c <c-clang-format-file>] [-f <"file1[ file2]..">] [-d <"dir1[ dir2]..">] [-m] [-n] [-h]
+$prog_name [-c <c-clang-format-file>] [-f <"file1[ file2]..">] [-d <"dir1[ dir2]..">] [-m] [-n] [-t] [-h]
 
     Format src/hdr files using clang-format (Supported: $SUPPORTED_EXTS)
     Uses '.clang-format' at the root of workspace for all but C files
@@ -98,6 +104,7 @@ $prog_name [-c <c-clang-format-file>] [-f <"file1[ file2]..">] [-d <"dir1[ dir2]
     -f  format <files>            (mutually exclusive to '-d')
     -m  format modified files on current branch
     -n  dry run
+    -t  same as '-f' but for testing '-c' (dumps clang-format output to stdout w/o changing file)
     -h  print this message
 EOM
 )
@@ -106,10 +113,10 @@ EOM
 
 main()
 {
-    local opt_m=
+    local opt_m= opt_t=
     local dirlist= filelist=
 
-    while getopts "c:d:f:hmn" arg; do
+    while getopts "c:d:f:hmnt:" arg; do
         case $arg in
             c) C_CLANG_FORMAT_FILE=$OPTARG ;;
             d) dirlist=$OPTARG ;;
@@ -117,6 +124,7 @@ main()
             h) print_help "$0"; exit 0 ;;
             m) eval "opt_$arg=true";;
             n) DRY_RUN=true ;;
+            t) eval "opt_$arg=true"; filelist=$OPTARG ;;
             ?) fail ;;
         esac
     done
@@ -125,7 +133,7 @@ main()
     if [ "$opt_m" = "true" ]; then
         clang_format_modified_files
     elif [ -n "$filelist" ]; then
-        clang_format_files "$filelist"
+        clang_format_files "$filelist" "$opt_t"
     elif [ -n "$dirlist" ]; then
         clang_format_dir_files "$dirlist"
     else
