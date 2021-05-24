@@ -8,6 +8,8 @@ DRY_RUN=false
 SUPPORTED_EXTS=".c .h .cc .hh .cpp .hpp"
 # Separate clang-format file for C srcs
 C_CLANG_FORMAT_FILE=$TOPDIR/build/clang-format-c
+# User may override use of .clang-format at root of workspace
+DEFAULT_CLANG_FORMAT_FILE=
 
 fail()
 {
@@ -18,12 +20,18 @@ fail()
 print_clang_format_style()
 {
     local file=$(basename $1)
-    local clang_format_style=
+    local clang_format_file= clang_format_style=
 
+    # Override .clang-format file, if requested,
+    # and supply it as JSON string to "style=" arg
     if [[ "$file" =~ .*\.[c|h]$ ]]; then
-        # Use a different .clang-format for C files and
-        # supply it as JSON string to "style=" arg
-        clang_format_style="$(echo -e "import sys, yaml, json;\nwith open(\"$C_CLANG_FORMAT_FILE\", 'r') as yaml_in:\n\tjson.dump(yaml.safe_load(yaml_in), sys.stdout)" | $PYTHON)"
+        clang_format_file=$C_CLANG_FORMAT_FILE
+    else
+        clang_format_file=$DEFAULT_CLANG_FORMAT_FILE
+    fi
+
+    if [ -n "$clang_format_file" ]; then
+        clang_format_style="$(echo -e "import sys, yaml, json;\nwith open(\"$clang_format_file\", 'r') as yaml_in:\n\tjson.dump(yaml.safe_load(yaml_in), sys.stdout)" | $PYTHON)"
     else
         # Default. Use .clang-format at the root of this workspace
         clang_format_style=file
@@ -99,12 +107,13 @@ $prog_name [-c <c-clang-format-file>] [-f <"file1[ file2]..">] [-d <"dir1[ dir2]
     Uses '.clang-format' at the root of workspace for all but C files
     Assumes C++ (src/hdr) files uses different extension than C files (i.e. .[c|h])
 
+    -C  clang-format file to use instead of .clang-format at the root of workspace
     -c  clang-format file for C files (default: ${C_CLANG_FORMAT_FILE#$TOPDIR/})
     -d  format files under <dirs> (mutually exclusive to '-f')
     -f  format <files>            (mutually exclusive to '-d')
     -m  format modified files on current branch
     -n  dry run
-    -t  same as '-f' but for testing '-c' (dumps clang-format output to stdout w/o changing file)
+    -t  same as '-f' but for testing with '-c' or '-C'; dumps clang-format output to stdout w/o changing file
     -h  print this message
 EOM
 )
@@ -116,8 +125,9 @@ main()
     local opt_m= opt_t=
     local dirlist= filelist=
 
-    while getopts "c:d:f:hmnt:" arg; do
+    while getopts "C:c:d:f:hmnt:" arg; do
         case $arg in
+            C) DEFAULT_CLANG_FORMAT_FILE=$OPTARG ;;
             c) C_CLANG_FORMAT_FILE=$OPTARG ;;
             d) dirlist=$OPTARG ;;
             f) filelist=$OPTARG ;;
