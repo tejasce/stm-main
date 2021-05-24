@@ -17,6 +17,12 @@ fail()
     exit 1
 }
 
+check_file()
+{
+    local file=$1
+    [ ! -f "$file" ] && fail "'$file' doesn't exist."
+}
+
 print_clang_format_style()
 {
     local file=$(basename $1)
@@ -31,7 +37,7 @@ print_clang_format_style()
     fi
 
     if [ -n "$clang_format_file" ]; then
-        clang_format_style="$(echo -e "import sys, yaml, json;\nwith open(\"$clang_format_file\", 'r') as yaml_in:\n\tjson.dump(yaml.safe_load(yaml_in), sys.stdout)" | $PYTHON)"
+        clang_format_style="$(echo -e "import sys, yaml, json;\nwith open('$clang_format_file', 'r') as yaml_in:\n\tjson.dump(yaml.safe_load(yaml_in), sys.stdout)" | $PYTHON)"
     else
         # Default. Use .clang-format at the root of this workspace
         clang_format_style=file
@@ -139,6 +145,10 @@ main()
         esac
     done
     shift $((OPTIND - 1))
+
+    # basic sanity check
+    check_file "$C_CLANG_FORMAT_FILE"
+    [ -n "$DEFAULT_CLANG_FORMAT_FILE" ] && check_file "$DEFAULT_CLANG_FORMAT_FILE"
 
     if [ "$opt_m" = "true" ]; then
         clang_format_modified_files
