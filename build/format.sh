@@ -107,7 +107,7 @@ print_help()
 {
     local prog_name=$(basename "$1")
     HELPSTR=$(cat <<- EOM
-$prog_name [-c <c-clang-format-file>] [-f <"file1[ file2]..">] [-d <"dir1[ dir2]..">] [-m] [-n] [-t] [-h]
+$prog_name [-C <alt .clang-format>] [-c <c-clang-format-file>] [-f <"file1[ file2]..">] [-d <"dir1[ dir2]..">] [-m] [-n] [-t] [-h]
 
     Format src/hdr files using clang-format (Supported: $SUPPORTED_EXTS)
     Uses '.clang-format' at the root of workspace for all but C files
