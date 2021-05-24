@@ -7,7 +7,7 @@ DRY_RUN=false
 # .clang-format at $TOPDIR specifies style for all but C srcs
 SUPPORTED_EXTS=".c .h .cc .hh .cpp .hpp"
 # Separate clang-format file for C srcs
-C_CLANG_FORMAT_FILE=$TOPDIR/build/clang-format-c
+C_CLANG_FORMAT_FILE=$TOPDIR/.clang-format-c
 # User may override use of .clang-format at root of workspace
 DEFAULT_CLANG_FORMAT_FILE=
 
