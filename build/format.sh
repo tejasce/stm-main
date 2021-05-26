@@ -10,6 +10,8 @@ SUPPORTED_EXTS=".c .h .cc .hh .cpp .hpp"
 C_CLANG_FORMAT_FILE=$TOPDIR/.clang-format-c
 # User may override use of .clang-format at root of workspace
 DEFAULT_CLANG_FORMAT_FILE=
+# Directories where format check is requested to be skipped
+EXCL_DIRS="$(find $TOPDIR/{cmds,libs,firmware} -name NO_FORMAT -type f -printf "%h\n" | sed -n "s|^$TOPDIR/||p")"
 
 fail()
 {
@@ -17,10 +19,36 @@ fail()
     exit 1
 }
 
+warn()
+{
+    [ $# -gt 0 ] && echo "$*" 1>&2
+    return 1
+}
+
 check_file()
 {
     local file=$1
     [ ! -f "$file" ] && fail "'$file' doesn't exist."
+}
+
+skip_file()
+{
+    local file="${1#$TOPDIR}"
+
+    # file must exists and nowhere in its path [relative to $TOPDIR]
+    # should a NO_CLANG file exists
+    if [ ! -f "$file" ]; then
+        warn "'$file' doesn't exist"
+        return 1
+    elif [ -n "$EXCL_DIRS" ]; then
+        for exdir in $EXCL_DIRS; do
+            if [ "${file#$exdir/}" != "$file" ]; then
+                warn "Skipping $file.. (found $exdir/NO_FORMAT)"
+                return 1
+            fi
+        done
+    fi
+    return 0
 }
 
 print_clang_format_style()
@@ -50,9 +78,13 @@ clang_format_files()
     local files=$1
     local testing=$2
     local rc=0
-
     local outfile= clang_format_cmd=
+
     for file in $files; do
+        # check if this file should skip the format check
+        ! skip_file "$file" && continue
+
+        # check the diff between "file" and "clang-format file"
         clang_format_cmd="clang-format -style='$(print_clang_format_style $file)' $file"
         if ! diff -qs <(eval "$clang_format_cmd") <(cat "$file") >/dev/null; then
             if [ "$DRY_RUN" = "true" ]; then
