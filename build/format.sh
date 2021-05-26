@@ -144,6 +144,7 @@ $prog_name [-C <alt .clang-format>] [-c <c-clang-format-file>] [-f <"file1[ file
     Format src/hdr files using clang-format (Supported: $SUPPORTED_EXTS)
     Uses '.clang-format' at the root of workspace for all but C files
     Assumes C++ (src/hdr) files uses different extension than C files (i.e. .[c|h])
+    Presence of NO_FORMAT file in a directory will skip format check on all files in it and in its sub-directories
 
     -C  clang-format file to use instead of .clang-format at the root of workspace
     -c  clang-format file for C files (default: ${C_CLANG_FORMAT_FILE#$TOPDIR/})
