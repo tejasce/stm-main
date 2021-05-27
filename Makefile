@@ -14,6 +14,19 @@ endif
 OBJDIR_PREFIX := objs.
 
 #
+# This repo ships with its build-environment. All the build
+# (vs clean etc) targets work as intended inside the buildenv.
+# User must first build it and use a "buildenv shell" to build
+# source in this repo. All the non-build targets that works
+# both in and out of buildenv shell are filtered for this rule.
+#
+ifeq ($(BUILDENV_SHELL),)
+ifeq ($(filter clean% clobber env format help%,$(MAKECMDGOALS)),)
+$(error Run "make env" first. See "make help")
+endif
+endif
+
+#
 # Validate cross-compile arch when specified from cmdline
 #
 ARCH ?= $(TARGET_ARCH)
