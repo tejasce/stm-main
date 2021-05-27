@@ -1,0 +1,13 @@
+---
+Language: Cpp
+BasedOnStyle: Google
+ColumnLimit: 120
+IndentWidth: 2
+TabWidth: 2
+UseTab: Never
+AlignAfterOpenBracket: false
+MaxEmptyLinesToKeep: 1
+NamespaceIndentation: "None"
+PointerBindsToType: true
+SpacesBeforeTrailingComments: 2
+ContinuationIndentWidth: 4

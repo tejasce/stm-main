@@ -11,4 +11,4 @@ extern void print_msg(const char *);
 }
 #endif
 
-#endif  // HELLO_H
+#endif // HELLO_H

@@ -56,6 +56,12 @@ clean:
 endif
 
 #
+# Apply clang-format to new+modified src files. Always runs inside buildenv shell
+#
+format: startenv
+	$(Q)$(BUILDENV_C) $(TOPDIR)/build/format.sh -m $(if $(DRY_RUN),-n,)
+
+#
 # Wrapper useful "clean" targets
 #
 cleanall:
@@ -80,6 +86,7 @@ help:
 	@echo "        clean: remove all previously built $(ARCH) products"
 	@echo "     cleanall: remove all products for all targets architectues"
 	@echo "      clobber: cleanall + remove cscope/ctags"
+	@echo "       format: run 'clang-format' on new+modified files on this branch"
 	@echo "         help: show this message"
 	@echo "<path>[:prod]: build all $(ARCH) products for <path> and subdirs below"
 	@echo "               if specified, build only the product "prod" in the <path>"
@@ -97,6 +104,8 @@ help:
 	@echo "               Supported: $(SUPPORTED_ARCHS) [Default: $(TARGET_ARCH)]"
 	@echo "      VERBOSE: build verbosity"
 	@echo "               On/Off if defined/undefined [Default: not defined]"
+	@echo "      DRY_RUN: perform dry-run but do not apply changes"
+	@echo "               tgts: format"
 	@echo "   DEV_SERIAL: s/n# of a st-link programmer (from \"st-info --probe\")"
 	@echo "               Useful when multiple boards are connected [Default: none]"
 	@echo
