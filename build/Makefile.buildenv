@@ -10,10 +10,13 @@ THIS_GID := $(shell id -g)
 DOCKER_SOCKET := /var/run/docker.sock
 DOCKER_GID := $(shell stat -c '%g' $(DOCKER_SOCKET) 2>/dev/null)
 
+# Similar to "bash -c", prefix to use to run a command inside buildenv shell from outside
+BUILDENV_C := $(if $(BUILDENV_SHELL),,$(DOCKER_CMD) exec -it $(CONTAINER_NAME))
+
 define buildenv_image
 	if [ "$(1)" = "clean" ]; then \
 		$(DOCKER_CMD) image rm -f $(IMAGE_NAME) >/dev/null 2>&1 || true; \
-	elif [ -z "$$($(DOCKER_CMD) images -q $(IMAGE_NAME) 2>/dev/null)" ]; then \
+	elif [ "$(BUILDENV_SHELL)" != "true" ] && [ -z "$$($(DOCKER_CMD) images -q $(IMAGE_NAME) 2>/dev/null)" ]; then \
 		$(DOCKER_CMD) build --build-arg USER=$(THIS_USER) \
 			--build-arg GROUP=$(THIS_GROUP) \
 			--build-arg UID=$(THIS_UID) \
@@ -24,16 +27,16 @@ define buildenv_image
 endef
 
 define buildenv_container
-	if [ "$$(uname -s)" = "Darwin" ]; then \
-		IP=$$(ifconfig en0 | awk '$$1=="inet" {print $$2}'); \
-		xhost + $$IP >/dev/null; \
-		DISPLAY=$$IP:0; \
-	else \
-		DISPLAY=$(DISPLAY); \
-	fi; \
 	if [ "$(1)" = "stop" ]; then \
 		$(DOCKER_CMD) stop $(CONTAINER_NAME) >/dev/null 2>&1 || true; \
-	elif [ "$$($(DOCKER_CMD) ps --filter name=$(CONTAINER_NAME) --format "{{.Names}}")" != "$(CONTAINER_NAME)" ]; then \
+	elif [ "$(BUILDENV_SHELL)" != "true" ] && [ "$$($(DOCKER_CMD) ps --filter name=$(CONTAINER_NAME) --format "{{.Names}}")" != "$(CONTAINER_NAME)" ]; then \
+		if [ "$$(uname -s)" = "Darwin" ]; then \
+			IP=$$(ifconfig en0 | awk '$$1=="inet" {print $$2}'); \
+			xhost + $$IP >/dev/null; \
+			DISPLAY=$$IP:0; \
+		else \
+			DISPLAY=$(DISPLAY); \
+		fi; \
 		$(DOCKER_CMD) run --name $(CONTAINER_NAME) --rm -d --privileged --net=host \
 			-u $(THIS_USER) \
 			-e USER=$(THIS_USER) -e DISPLAY=$$DISPLAY -e BUILDENV_SHELL=true \

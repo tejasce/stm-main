@@ -56,10 +56,10 @@ clean:
 endif
 
 #
-# Apply clang-format to new+modified src files
+# Apply clang-format to new+modified src files. Always runs inside buildenv shell
 #
-format:
-	@$(TOPDIR)/build/format.sh -m $(if $(DRY_RUN),-n,)
+format: startenv
+	$(Q)$(BUILDENV_C) $(TOPDIR)/build/format.sh -m $(if $(DRY_RUN),-n,)
 
 #
 # Wrapper useful "clean" targets
