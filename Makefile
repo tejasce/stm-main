@@ -21,7 +21,7 @@ OBJDIR_PREFIX := objs.
 # both in and out of buildenv shell are filtered for this rule.
 #
 ifeq ($(BUILDENV_SHELL),)
-ifeq ($(filter clean% clobber env format help%,$(MAKECMDGOALS)),)
+ifeq ($(filter clean% clobber %env format help%,$(MAKECMDGOALS)),)
 $(error Run "make env" first. See "make help")
 endif
 endif
