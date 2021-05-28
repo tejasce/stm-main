@@ -14,16 +14,16 @@ DOCKER_GID := $(shell stat -c '%g' $(DOCKER_SOCKET) 2>/dev/null)
 BUILDENV_C := $(if $(BUILDENV_SHELL),,$(DOCKER_CMD) exec -it $(CONTAINER_NAME))
 
 # Minimum things needed on a host machine to build buildenv
-HOST_DEPS := docker realpath
+HOST_DEPS := docker jq realpath
 
 define check_host_deps
 	OS=$$(uname -s 2>/dev/null); \
 	if [ "$$OS" != "Linux" ] && [ "$$OS" != "Darwin" ]; then \
-		echo -ne "\nBuild-environment works only Linux and OSX.\n\n" >&2; exit 1; \
+		echo -ne "\nBuild-environment works only Linux and OSX.\n\n" >&2; false; \
 	elif [ -n "$(HOST_DEPS)" ]; then \
 		for dep in $(HOST_DEPS); do \
 			if ! which "$$dep" 2>/dev/null 1>&2; then \
-				echo -ne "\nPlease install '$$dep'.\n\n" >&2; exit 1; \
+				echo -ne "\nPlease install '$$dep'.\n\n" >&2; false; \
 			fi; \
 		done; \
 	fi
@@ -31,9 +31,11 @@ endef
 
 define buildenv_image
 	$(call check_host_deps) && \
-	if [ "$(1)" = "clean" ]; then \
+	if [ "$(BUILDENV_SHELL)" = "true" ]; then \
+		true; \
+	elif [ "$(1)" = "clean" ]; then \
 		$(DOCKER_CMD) image rm -f $(IMAGE_NAME) >/dev/null 2>&1 || true; \
-	elif [ "$(BUILDENV_SHELL)" != "true" ] && [ -z "$$($(DOCKER_CMD) images -q $(IMAGE_NAME) 2>/dev/null)" ]; then \
+	elif [ -z "$$($(DOCKER_CMD) images -q $(IMAGE_NAME) 2>/dev/null)" ]; then \
 		$(DOCKER_CMD) build --build-arg USER=$(THIS_USER) \
 			--build-arg GROUP=$(THIS_GROUP) \
 			--build-arg UID=$(THIS_UID) \
@@ -45,9 +47,11 @@ endef
 
 define buildenv_container
 	$(call check_host_deps) && \
-	if [ "$(1)" = "stop" ]; then \
+	if [ "$(BUILDENV_SHELL)" = "true" ]; then \
+		true; \
+	elif [ "$(1)" = "stop" ]; then \
 		$(DOCKER_CMD) stop $(CONTAINER_NAME) >/dev/null 2>&1 || true; \
-	elif [ "$(BUILDENV_SHELL)" != "true" ] && [ "$$($(DOCKER_CMD) ps --filter name=$(CONTAINER_NAME) --format "{{.Names}}")" != "$(CONTAINER_NAME)" ]; then \
+	elif [ "$$($(DOCKER_CMD) ps --filter name=$(CONTAINER_NAME) --format "{{.Names}}")" != "$(CONTAINER_NAME)" ]; then \
 		if [ "$$(uname -s)" = "Darwin" ]; then \
 			IP=$$(ifconfig en0 | awk '$$1=="inet" {print $$2}'); \
 			xhost + $$IP >/dev/null; \
@@ -63,7 +67,17 @@ define buildenv_container
 	fi;
 endef
 
+define buildenv_img_check
+	DOCKERFILE_VER=$$(git grep -h -i "version=" $(DOCKERFILE) | sed -n 's/^.*version="\([0-9a-fA-F]\{1\}.[0-9a-fA-F]\{1\}.[0-9a-fA-F]\{1\}\)".*$$/\1/p'); \
+	DOCKERIMG_VER=$$($(DOCKER_CMD) inspect $(IMAGE_NAME) | jq -r '.[].Config.Labels.version'); \
+	if [ "$$DOCKERFILE_VER" != "$$DOCKERIMG_VER" ]; then \
+		printf "buildenv image version on this branch (disk-image: '%s' file-image: '%s'):\n" "$$DOCKERIMG_VER" "$$DOCKERFILE_VER" >&2; \
+		printf "\tTo sync, run \"make remkenv\" from outside buildenv-shell.\n" >&2; \
+	fi
+endef
+
 define buildenv_shell
+	$(call buildenv_img_check); \
 	if [ "$(BUILDENV_SHELL)" = "true" ]; then \
 		echo "Already inside buildenv-shell."; \
 	else \
@@ -86,6 +100,8 @@ env: startenv
 rmenv: stopenv
 	@$(call buildenv_image,clean)
 
+remkenv: rmenv mkenv
+
 #
 # Advertise only high-level targets
 #
@@ -93,5 +109,6 @@ help.buildenv:
 	@echo "Build environment targets"
 	@echo "          env: Run a \"buildenv shell\" for this workspace"
 	@echo "        rmenv: Remove existing build-environment (must exit \"buildenv shell\" first)"
+	@echo "      remkenv: Remove existing build-environemt and rebuild it (must exit \"buildenv shell\" first)"
 
 .PHONY: mkenv stopenv
