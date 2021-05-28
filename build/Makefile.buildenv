@@ -13,7 +13,24 @@ DOCKER_GID := $(shell stat -c '%g' $(DOCKER_SOCKET) 2>/dev/null)
 # Similar to "bash -c", prefix to use to run a command inside buildenv shell from outside
 BUILDENV_C := $(if $(BUILDENV_SHELL),,$(DOCKER_CMD) exec -it $(CONTAINER_NAME))
 
+# Minimum things needed on a host machine to build buildenv
+HOST_DEPS := docker realpath
+
+define check_host_deps
+	OS=$$(uname -s 2>/dev/null); \
+	if [ "$$OS" != "Linux" ] && [ "$$OS" != "Darwin" ]; then \
+		echo -ne "\nBuild-environment works only Linux and OSX.\n\n" >&2; exit 1; \
+	elif [ -n "$(HOST_DEPS)" ]; then \
+		for dep in $(HOST_DEPS); do \
+			if ! which "$$dep" 2>/dev/null 1>&2; then \
+				echo -ne "\nPlease install '$$dep'.\n\n" >&2; exit 1; \
+			fi; \
+		done; \
+	fi
+endef
+
 define buildenv_image
+	$(call check_host_deps) && \
 	if [ "$(1)" = "clean" ]; then \
 		$(DOCKER_CMD) image rm -f $(IMAGE_NAME) >/dev/null 2>&1 || true; \
 	elif [ "$(BUILDENV_SHELL)" != "true" ] && [ -z "$$($(DOCKER_CMD) images -q $(IMAGE_NAME) 2>/dev/null)" ]; then \
@@ -27,6 +44,7 @@ define buildenv_image
 endef
 
 define buildenv_container
+	$(call check_host_deps) && \
 	if [ "$(1)" = "stop" ]; then \
 		$(DOCKER_CMD) stop $(CONTAINER_NAME) >/dev/null 2>&1 || true; \
 	elif [ "$(BUILDENV_SHELL)" != "true" ] && [ "$$($(DOCKER_CMD) ps --filter name=$(CONTAINER_NAME) --format "{{.Names}}")" != "$(CONTAINER_NAME)" ]; then \
