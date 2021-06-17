@@ -219,17 +219,22 @@ else
 $$(error ERROR: Invalid C/C++ suffix '$(1)' (Supported: .c $$(CC_EXTS)))
 endif
 
+# Flag to distinguish a source file from a generated one (from protoc).
+# This is used to avoid running clang-tidy on generated files
+GENERATED := $(if $(filter $(OBJDIR),$(subst /, ,$(1))),1,0)
+
 # Remove $(OBJDIR) prefix from "SRCFILE" (aka $(1)) [in case if it's a generated one]
 # before adding it as a prefix to "OBJFILE"
 OBJFILE := $(OBJDIR)/$$(patsubst %$$(SUFFIX),%.o,$(subst $(OBJDIR)/,,$(1)))
 
+$$(OBJFILE):: GENERATED := $$(GENERATED)
 $$(OBJFILE):: GCCSTR := $$(GCCSTR)
 $$(OBJFILE):: GCC := $$(GCC)
 $$(OBJFILE):: CFLAGS := $$(CFLAGS)
 $$(OBJFILE):: CXXFLAGS := $$(CXXFLAGS)
 $$(OBJFILE): $(1) | $$(dir $$(OBJFILE))
 	@printf "%$(PCOL)s %s\n" $$(GCCSTR) $$@
-	$(Q)clang-tidy $$< -- $$(filter-out $$(CLANG_UNSUPPORTED_FLAGS),$$(CFLAGS)) $$(CXXFLAGS) $$(DEPFLAGS)
+	$(Q)[ "$$(GENERATED)" = "0" ] && clang-tidy $$< -- $$(filter-out $$(CLANG_UNSUPPORTED_FLAGS),$$(CFLAGS)) $$(CXXFLAGS) $$(DEPFLAGS)
 	$(Q)$$(GCC) $$(CFLAGS) $$(CXXFLAGS) $$(DEPFLAGS) -c $$< -o $$@
 	@mv -f $$*.Td $$*.d && touch $$@
 
