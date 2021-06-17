@@ -13,6 +13,9 @@ DEPEND := cmds/common/pb_example/proto:addressbook
 CFLAGS += $(PROTOBUF_CFLAGS)
 LFLAGS += $(PROTOBUF_LFLAGS)
 
+# Imported from internet: skip linting add_person.cc
+NO_LINT := 1
+
 include $(shell git rev-parse --show-toplevel)/Makefile.defs
 $(eval $(call inc_rule,cbin,$(C_BIN)))
 
@@ -23,6 +26,9 @@ C_SRCS := src/list_people.cc
 DEPEND := cmds/common/pb_example/proto:addressbook
 CFLAGS += $(PROTOBUF_CFLAGS)
 LFLAGS += $(PROTOBUF_LFLAGS)
+
+# Imported from internet: skip linting list_people.cc
+NO_LINT := 1
 $(eval $(call inc_rule,cbin,$(C_BIN)))
 
 # add proto_lib
