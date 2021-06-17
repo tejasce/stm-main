@@ -41,6 +41,8 @@ PROTOBUF_CFLAGS := -pthread -I/usr/local/$(ARCH)/include
 PROTOBUF_LFLAGS := -L/usr/local/$(ARCH)/lib -lprotobuf -lpthread
 # Number of colums to print at start of line in build output
 PCOL := 12
+# For clang-tidy. Enumerate flags that clang doesn't support to filter them out
+CLANG_UNSUPPORTED_FLAGS := -mcpu=cortex-m4 -mthumb-interwork
 
 #
 # All supported rules
@@ -227,6 +229,7 @@ $$(OBJFILE):: CFLAGS := $$(CFLAGS)
 $$(OBJFILE):: CXXFLAGS := $$(CXXFLAGS)
 $$(OBJFILE): $(1) | $$(dir $$(OBJFILE))
 	@printf "%$(PCOL)s %s\n" $$(GCCSTR) $$@
+	$(Q)clang-tidy $$< -- $$(filter-out $$(CLANG_UNSUPPORTED_FLAGS),$$(CFLAGS)) $$(CXXFLAGS) $$(DEPFLAGS)
 	$(Q)$$(GCC) $$(CFLAGS) $$(CXXFLAGS) $$(DEPFLAGS) -c $$< -o $$@
 	@mv -f $$*.Td $$*.d && touch $$@
 
