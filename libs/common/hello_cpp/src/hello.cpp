@@ -5,7 +5,7 @@
 
 namespace common {
 
-Hello::Hello(const std::string& user) : user_(user) {}
+Hello::Hello(std::string user) : user_(std::move(user)) {}
 
 void Hello::printMsg(const std::string& msg) { std::cout << msg << " " << user_ << std::endl; }
 
