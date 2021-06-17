@@ -54,7 +54,7 @@ ALL_RULES := STM32_ELF C_LIB C_BIN PROTO_LIB ZEPHYR_APP CARGO_PROJ
 # of Makefile.<rule> for proper init state for the new "PRODUCT"
 #
 COMMON_ATTRS := PRODUCT
-COMMON_C_ATTRS := CFLAGS CXXFLAGS LFLAGS H_DIRS C_SRCS DEPEND
+COMMON_C_ATTRS := CFLAGS CXXFLAGS LFLAGS H_DIRS C_SRCS DEPEND NO_LINT
 STM32_ELF_ATTRS := S_SRCS LD_SRC $(COMMON_C_ATTRS)
 C_LIB_ATTRS := I_HDRS STRIP_INC_PREFIX INC_PREFIX $(COMMON_C_ATTRS)
 C_BIN_ATTRS := $(COMMON_C_ATTRS)
@@ -227,14 +227,15 @@ GENERATED := $(if $(filter $(OBJDIR),$(subst /, ,$(1))),1,0)
 # before adding it as a prefix to "OBJFILE"
 OBJFILE := $(OBJDIR)/$$(patsubst %$$(SUFFIX),%.o,$(subst $(OBJDIR)/,,$(1)))
 
-$$(OBJFILE):: GENERATED := $$(GENERATED)
 $$(OBJFILE):: GCCSTR := $$(GCCSTR)
 $$(OBJFILE):: GCC := $$(GCC)
 $$(OBJFILE):: CFLAGS := $$(CFLAGS)
 $$(OBJFILE):: CXXFLAGS := $$(CXXFLAGS)
+$$(OBJFILE):: GENERATED := $$(GENERATED)
+$$(OBJFILE):: NO_LINT := $$(NO_LINT)
 $$(OBJFILE): $(1) | $$(dir $$(OBJFILE))
 	@printf "%$(PCOL)s %s\n" $$(GCCSTR) $$@
-	$(Q)if [ "$$(GENERATED)" = "0" ]; then \
+	$(Q)if [ "$$(GENERATED)" = "0" ] && [ -z "$$(NO_LINT)" ]; then \
 		clang-tidy $$< -- $$(filter-out $$(CLANG_UNSUPPORTED_CFLAGS),$$(CFLAGS)) $$(CXXFLAGS) $$(DEPFLAGS); \
 	fi
 	$(Q)$$(GCC) $$(CFLAGS) $$(CXXFLAGS) $$(DEPFLAGS) -c $$< -o $$@
