@@ -23,6 +23,7 @@ Makefile.ros := $(_TOPDIR_)/build/Makefile.ros
 Makefile.stm32 := $(_TOPDIR_)/build/Makefile.stm32
 Makefile.toolchain := $(_TOPDIR_)/build/Makefile.toolchain
 Makefile.zephyr := $(_TOPDIR_)/build/Makefile.zephyr
+CLANG_TIDY_CONFIG := $(_TOPDIR_)/.clang-tidy
 
 #
 # Common constants
@@ -222,6 +223,7 @@ endif
 # Flag to distinguish a source file from a generated one (from protoc).
 # This is used to avoid running clang-tidy on generated files
 GENERATED := $(if $(filter $(OBJDIR),$(subst /, ,$(1))),1,0)
+CLANG_TIDY_DEP := $$(shell [ "$$(GENERATED)" = "0" ] && [ -z "$$(NO_LINT)" ] && echo $$(CLANG_TIDY_CONFIG))
 
 # Remove $(OBJDIR) prefix from "SRCFILE" (aka $(1)) [in case if it's a generated one]
 # before adding it as a prefix to "OBJFILE"
@@ -231,11 +233,10 @@ $$(OBJFILE):: GCCSTR := $$(GCCSTR)
 $$(OBJFILE):: GCC := $$(GCC)
 $$(OBJFILE):: CFLAGS := $$(CFLAGS)
 $$(OBJFILE):: CXXFLAGS := $$(CXXFLAGS)
-$$(OBJFILE):: GENERATED := $$(GENERATED)
-$$(OBJFILE):: NO_LINT := $$(NO_LINT)
-$$(OBJFILE): $(1) | $$(dir $$(OBJFILE))
+$$(OBJFILE):: CLANG_TIDY_DEP := $$(CLANG_TIDY_DEP)
+$$(OBJFILE): $(1) $$(CLANG_TIDY_DEP) | $$(dir $$(OBJFILE))
 	@printf "%$(PCOL)s %s\n" $$(GCCSTR) $$@
-	$(Q)if [ "$$(GENERATED)" = "0" ] && [ -z "$$(NO_LINT)" ]; then \
+	$(Q)if [ -n "$$(CLANG_TIDY_DEP)" ]; then \
 		clang-tidy $$< -- $$(filter-out $$(CLANG_UNSUPPORTED_CFLAGS),$$(CFLAGS)) $$(CXXFLAGS) $$(DEPFLAGS); \
 	fi
 	$(Q)$$(GCC) $$(CFLAGS) $$(CXXFLAGS) $$(DEPFLAGS) -c $$< -o $$@
