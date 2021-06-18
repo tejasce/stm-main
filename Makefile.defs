@@ -237,7 +237,7 @@ $$(OBJFILE):: CLANG_TIDY_DEP := $$(CLANG_TIDY_DEP)
 $$(OBJFILE): $(1) $$(CLANG_TIDY_DEP) | $$(dir $$(OBJFILE))
 	@printf "%$(PCOL)s %s\n" $$(GCCSTR) $$@
 	$(Q)if [ -n "$$(CLANG_TIDY_DEP)" ]; then \
-		clang-tidy -quiet $$< -- $$(filter-out $$(CLANG_UNSUPPORTED_CFLAGS),$$(CFLAGS)) $$(CXXFLAGS) $$(DEPFLAGS); \
+		clang-tidy -quiet -warnings-as-errors="*" $$< -- $$(filter-out $$(CLANG_UNSUPPORTED_CFLAGS),$$(CFLAGS)) $$(CXXFLAGS) $$(DEPFLAGS); \
 	fi
 	$(Q)$$(GCC) $$(CFLAGS) $$(CXXFLAGS) $$(DEPFLAGS) -c $$< -o $$@
 	@mv -f $$*.Td $$*.d && touch $$@
