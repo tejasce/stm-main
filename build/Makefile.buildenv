@@ -68,10 +68,10 @@ define buildenv_container
 endef
 
 define buildenv_img_check
-	if [[ "$$($(DOCKER_CMD) ps 2>&1)" =~ ^Got\ permission\ denied\ while\.* ]]; then \
+	if [ "$(BUILDENV_SHELL)" = "true" ] && [[ "$$($(DOCKER_CMD) ps 2>&1)" =~ ^Got\ permission\ denied\ while\.* ]]; then \
 		sudo chown -R $(THIS_USER):$(THIS_GROUP) $(DOCKER_SOCKET); \
 	fi; \
-	DOCKERFILE_VER=$$(git grep -h -i "version=" $(DOCKERFILE) | sed -n 's/^.*version="\([0-9a-fA-F]\{1\}.[0-9a-fA-F]\{1\}.[0-9a-fA-F]\{1\}\)".*$$/\1/p'); \
+	DOCKERFILE_VER=$$(git grep -h -i "^LABEL version=" $(DOCKERFILE) | sed -n 's/^.*version="\([0-9a-fA-F]\{1\}.[0-9a-fA-F]\{1\}.[0-9a-fA-F]\{1\}\)".*$$/\1/p'); \
 	DOCKERIMG_VER=$$($(DOCKER_CMD) inspect $(IMAGE_NAME) | jq -r '.[].Config.Labels.version'); \
 	if [ "$$DOCKERFILE_VER" != "$$DOCKERIMG_VER" ]; then \
 		printf "buildenv image version on this branch (disk-image: '%s' file-image: '%s'):\n" "$$DOCKERIMG_VER" "$$DOCKERFILE_VER" >&2; \

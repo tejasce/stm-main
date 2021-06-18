@@ -118,7 +118,7 @@ clang_format_modified_files()
 
     # Find modified+newly staged C/C++ files (with "" arg) and all the
     # C/C++ files that are changed between top of master and this branch
-    for commit in "" "master..HEAD"; do
+    for commit in "" "--staged" "master..HEAD"; do
         modified_files+="$(eval git diff --name-only $commit $git_exts) "
     done
     clang_format_files "$modified_files"
