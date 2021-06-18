@@ -19,8 +19,9 @@ OBJDIR_PREFIX := objs.
 # User must first build it and use a "buildenv shell" to build
 # source in this repo. All the non-build targets that works
 # both in and out of buildenv shell are filtered for this rule.
+# One more excpetion is $(flash) flag which is necessary on OSX.
 #
-ifeq ($(BUILDENV_SHELL),)
+ifeq ($(BUILDENV_SHELL)$(flash),)
 ifeq ($(filter clean% clobber %env format help%,$(MAKECMDGOALS)),)
 $(error Run "make env" first. See "make help")
 endif
