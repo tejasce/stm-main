@@ -23,6 +23,7 @@ Makefile.ros := $(_TOPDIR_)/build/Makefile.ros
 Makefile.stm32 := $(_TOPDIR_)/build/Makefile.stm32
 Makefile.toolchain := $(_TOPDIR_)/build/Makefile.toolchain
 Makefile.zephyr := $(_TOPDIR_)/build/Makefile.zephyr
+CLANG_TIDY_CONFIG := $(_TOPDIR_)/.clang-tidy
 
 #
 # Common constants
@@ -41,6 +42,8 @@ PROTOBUF_CFLAGS := -pthread -I/usr/local/$(ARCH)/include
 PROTOBUF_LFLAGS := -L/usr/local/$(ARCH)/lib -lprotobuf -lpthread
 # Number of colums to print at start of line in build output
 PCOL := 12
+# For clang-tidy. Enumerate flags that clang doesn't support to filter them out
+CLANG_UNSUPPORTED_CFLAGS := -mcpu=cortex-m4 -mthumb-interwork
 
 #
 # All supported rules
@@ -52,7 +55,7 @@ ALL_RULES := STM32_ELF C_LIB C_BIN PROTO_LIB ZEPHYR_APP CARGO_PROJ
 # of Makefile.<rule> for proper init state for the new "PRODUCT"
 #
 COMMON_ATTRS := PRODUCT
-COMMON_C_ATTRS := CFLAGS CXXFLAGS LFLAGS H_DIRS C_SRCS DEPEND
+COMMON_C_ATTRS := CFLAGS CXXFLAGS LFLAGS H_DIRS C_SRCS DEPEND NO_LINT
 STM32_ELF_ATTRS := S_SRCS LD_SRC $(COMMON_C_ATTRS)
 C_LIB_ATTRS := I_HDRS STRIP_INC_PREFIX INC_PREFIX $(COMMON_C_ATTRS)
 C_BIN_ATTRS := $(COMMON_C_ATTRS)
@@ -217,6 +220,11 @@ else
 $$(error ERROR: Invalid C/C++ suffix '$(1)' (Supported: .c $$(CC_EXTS)))
 endif
 
+# Flag to distinguish a source file from a generated one (from protoc).
+# This is used to avoid running clang-tidy on generated files
+GENERATED := $(if $(filter $(OBJDIR),$(subst /, ,$(1))),1,0)
+CLANG_TIDY_DEP := $$(shell [ "$$(GENERATED)" = "0" ] && [ -z "$$(NO_LINT)" ] && echo $$(CLANG_TIDY_CONFIG))
+
 # Remove $(OBJDIR) prefix from "SRCFILE" (aka $(1)) [in case if it's a generated one]
 # before adding it as a prefix to "OBJFILE"
 OBJFILE := $(OBJDIR)/$$(patsubst %$$(SUFFIX),%.o,$(subst $(OBJDIR)/,,$(1)))
@@ -225,8 +233,12 @@ $$(OBJFILE):: GCCSTR := $$(GCCSTR)
 $$(OBJFILE):: GCC := $$(GCC)
 $$(OBJFILE):: CFLAGS := $$(CFLAGS)
 $$(OBJFILE):: CXXFLAGS := $$(CXXFLAGS)
-$$(OBJFILE): $(1) | $$(dir $$(OBJFILE))
+$$(OBJFILE):: CLANG_TIDY_DEP := $$(CLANG_TIDY_DEP)
+$$(OBJFILE): $(1) $$(CLANG_TIDY_DEP) | $$(dir $$(OBJFILE))
 	@printf "%$(PCOL)s %s\n" $$(GCCSTR) $$@
+	$(Q)if [ -n "$$(CLANG_TIDY_DEP)" ]; then \
+		clang-tidy -quiet $$< -- $$(filter-out $$(CLANG_UNSUPPORTED_CFLAGS),$$(CFLAGS)) $$(CXXFLAGS) $$(DEPFLAGS); \
+	fi
 	$(Q)$$(GCC) $$(CFLAGS) $$(CXXFLAGS) $$(DEPFLAGS) -c $$< -o $$@
 	@mv -f $$*.Td $$*.d && touch $$@
 

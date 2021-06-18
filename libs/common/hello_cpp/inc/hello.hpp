@@ -6,7 +6,7 @@ namespace common {
 
 class Hello {
  public:
-  explicit Hello(const std::string& user = "Guest");
+  explicit Hello(std::string user = "Guest");
   void printMsg(const std::string& msg);
 
  private:
