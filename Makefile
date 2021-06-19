@@ -120,6 +120,8 @@ help:
 	@echo "               On/Off if defined/undefined [Default: not defined]"
 	@echo "      DRY_RUN: perform dry-run but do not apply changes"
 	@echo "               tgts: format"
+	@echo "      RELEASE: build optimized artifacts with release profile"
+	@echo "               debug build if undefined [Default: not defined]"
 	@echo "   DEV_SERIAL: s/n# of a st-link programmer (from \"st-info --probe\")"
 	@echo "               Useful when multiple boards are connected [Default: none]"
 	@echo
