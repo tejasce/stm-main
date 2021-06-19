@@ -14,11 +14,11 @@ OBJ_SUBDIRS += $(sort $(dir $(PB_CC_OBJS)))
 # Dependency target, includes and LD paths (e.g. path/to/libdir:<C_LIB>)
 $(eval $(call eval_clib_deps))
 
-CFLAGS += -fPIC $(PROTOBUF_CFLAGS)
+CFLAGS += $(GLOBAL_CFLAGS) -fPIC $(PROTOBUF_CFLAGS)
 CFLAGS += $(DEPINC)
 LFLAGS += -shared $(PROTOBUF_LFLAGS)
 LFLAGS += $(DEP_LD)
-CXXFLAGS += --std=c++17
+CXXFLAGS += $(GLOBAL_CXXFLAGS)
 
 # Add targets to generate .cc file from .proto files
 PB_CC_SRCS :=

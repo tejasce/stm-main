@@ -18,19 +18,19 @@ OBJ_SUBDIRS += $(sort $(dir $(C_OBJS)) $(PRODUCT_OBJDIR))
 # Dependency target, includes and LD paths (e.g. path/to/libdir:<C_LIB>)
 $(eval $(call eval_clib_deps))
 
-CFLAGS += -Wall -g -O3 -fPIC
+CFLAGS += $(GLOBAL_CFLAGS) -fPIC
 CFLAGS += -I$(PRODUCT_OBJDIR)
 CFLAGS += $(H_INCS)
 CFLAGS += $(DEPINC)
 LFLAGS += -shared
 LFLAGS += $(DEP_LD)
-CXXFLAGS += --std=c++17
-
-# Add targets to detect change in C flags
-$(eval $(call cflags_change_tgt,clib,$(C_LIB)))
+CXXFLAGS += $(GLOBAL_CXXFLAGS)
 
 # Add targets for each .o file
 $(eval $(call add_c_obj_tgts,$(C_SRCS:%=$(PRODIR)/%)))
+
+# Add targets to detect change in C flags (after add_c_obj_tgts() as it changes flags)
+$(eval $(call cflags_change_tgt,clib,$(C_LIB)))
 
 # Create symllink to each include header in target obj directory
 # Determine if include_prefix should be stripped and/or added
