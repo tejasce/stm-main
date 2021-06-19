@@ -38,7 +38,7 @@ CC_H_EXTS := .hpp .h .hh
 CC_EXTS_PATT := $(CC_EXTS:%=\%%)
 CC_H_EXTS_PATT := $(CC_H_EXTS:%=\%%)
 # Global C flags
-GLOBAL_CFLAGS := -Wall -g -O3
+GLOBAL_CFLAGS := -Wall $(if $(RELEASE),-O3,-g -DDEBUG)
 # Global CXX flags
 GLOBAL_CXXFLAGS := --std=c++17 -Wextra -Wpedantic
 # PROTOBUF ARCH dependent CFLAGS and LFLAGS

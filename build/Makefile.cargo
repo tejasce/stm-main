@@ -18,7 +18,7 @@ CARGO_CROSS_COMPILE_TARGET :=
 endif
 
 CARGO_CROSS_COMPILE_TARGET_DIR := $(if $(CARGO_CROSS_COMPILE_TARGET),$(CARGO_CROSS_COMPILE_TARGET)/,)
-BINELF := $(PRODUCT_OBJDIR)/$(CARGO_CROSS_COMPILE_TARGET_DIR)debug/$(CARGO_PROJ)
+BINELF := $(PRODUCT_OBJDIR)/$(CARGO_CROSS_COMPILE_TARGET_DIR)$(if $(RELEASE),release,debug)/$(CARGO_PROJ)
 
 $(BINELF):: CARGO_TARGET_ARG := $(if $(CARGO_CROSS_COMPILE_TARGET),--target $(CARGO_CROSS_COMPILE_TARGET),)
 $(BINELF):: PRODIR := $(PRODIR)
@@ -26,7 +26,7 @@ $(BINELF):: PRODUCT_OBJDIR := $(PRODUCT_OBJDIR)
 $(BINELF):: BUILD_LOG := $(PRODUCT_OBJDIR)/build.log
 $(BINELF): | $(PRODUCT_OBJDIR)
 	@printf "%$(PCOL)s %s\n" "[CARGO]" $@ && printf "%$(PCOL)s %s %s\n" "" "Logs:" $(BUILD_LOG)
-	$(Q)$(CARGO) build --manifest-path $(PRODIR)/Cargo.toml --target-dir $(PRODUCT_OBJDIR) $(CARGO_TARGET_ARG) --jobs $(CORES) > $(BUILD_LOG) 2>&1 || { tail -n 40 $(BUILD_LOG); exit 1; }
+	$(Q)$(CARGO) build $(if $(RELEASE),--release,) --manifest-path $(PRODIR)/Cargo.toml --target-dir $(PRODUCT_OBJDIR) $(CARGO_TARGET_ARG) --jobs $(CORES) > $(BUILD_LOG) 2>&1 || { tail -n 40 $(BUILD_LOG); exit 1; }
 
 all.$(PRODUCT): $(BINELF)
 	@true    # avoid "Nothing to be done for .."
