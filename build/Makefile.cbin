@@ -16,18 +16,18 @@ OBJ_SUBDIRS += $(sort $(dir $(C_OBJS)) $(PRODUCT_OBJDIR))
 # Dependency target, includes and LD paths (e.g. path/to/libdir:<C_LIB>)
 $(eval $(call eval_clib_deps))
 
-CFLAGS += -Wall -g -O3
+CFLAGS += $(GLOBAL_CFLAGS)
 CFLAGS += $(H_INCS)
 CFLAGS += $(DEPINC)
 LFLAGS += -static
 LFLAGS += $(DEP_LD)
-CXXFLAGS += --std=c++17
-
-# Add targets to detect change in C flags
-$(eval $(call cflags_change_tgt,cbin,$(C_BIN)))
+CXXFLAGS += $(GLOBAL_CXXFLAGS)
 
 # Add targets for each .o file
 $(eval $(call add_c_obj_tgts,$(C_SRCS:%=$(PRODIR)/%)))
+
+# Add targets to detect change in C flags (after add_c_obj_tgts() as it changes flags)
+$(eval $(call cflags_change_tgt,cbin,$(C_BIN)))
 
 # Build dep .a first but omit those files while linking
 $(BINELF):: CXX := $(CXX)

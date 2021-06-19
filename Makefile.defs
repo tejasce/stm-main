@@ -37,6 +37,10 @@ CC_EXTS := .cpp .cc
 CC_H_EXTS := .hpp .h .hh
 CC_EXTS_PATT := $(CC_EXTS:%=\%%)
 CC_H_EXTS_PATT := $(CC_H_EXTS:%=\%%)
+# Global C flags
+GLOBAL_CFLAGS := -Wall -g -O3
+# Global CXX flags
+GLOBAL_CXXFLAGS := --std=c++17 -Wextra -Wpedantic
 # PROTOBUF ARCH dependent CFLAGS and LFLAGS
 PROTOBUF_CFLAGS := -pthread -I/usr/local/$(ARCH)/include
 PROTOBUF_LFLAGS := -L/usr/local/$(ARCH)/lib -lprotobuf -lpthread
