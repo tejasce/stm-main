@@ -39,7 +39,7 @@ $(BINELF): $(DEP_AR) $(C_OBJS)
 
 all.$(PRODUCT): $(BINELF)
 
-$(eval $(call add_tarball_tgt,$(BIN_TARBALL),$(BINELF),$(BIN_INSTALL_PREFIX)))
+$(eval $(call add_tarball_tgt,$(BIN_TARBALL),$(BINELF),BIN_INSTALL_PREFIX))
 tarball.$(PRODUCT): $(BIN_TARBALL)
 	@true    # avoid "Nothing to be done for .."
 

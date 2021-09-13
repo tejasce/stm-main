@@ -48,11 +48,11 @@ PROTOBUF_LFLAGS := -L/usr/local/$(ARCH)/lib -lprotobuf -lpthread
 PCOL := 12
 # For clang-tidy. Enumerate flags that clang doesn't support to filter them out
 CLANG_UNSUPPORTED_CFLAGS := -mcpu=cortex-m4 -mthumb-interwork
-# Default install prefix (can be overriden by individual product makefiles)
-LIB_INCLUDE_INSTALL_PREFIX := /usr/include
-LIB_INSTALL_PREFIX := /usr/lib
-BIN_INSTALL_PREFIX := /usr/bin
-FW_INSTALL_PREFIX := /usr/lib/firmware
+# Default install prefix (can be overriden at command-line and by individual product makefiles)
+DEFAULT_LIB_INCLUDE_INSTALL_PREFIX ?= /usr/include
+DEFAULT_LIB_INSTALL_PREFIX ?= /usr/lib
+DEFAULT_BIN_INSTALL_PREFIX ?= /usr/bin
+DEFAULT_FW_INSTALL_PREFIX ?= /usr/lib/firmware
 
 #
 # All supported rules
@@ -70,11 +70,11 @@ ALL_GOALS := all clean tarball
 #
 COMMON_ATTRS := PRODUCT
 COMMON_C_ATTRS := CFLAGS CXXFLAGS LFLAGS H_DIRS C_SRCS DEPEND NO_LINT
-STM32_ELF_ATTRS := S_SRCS LD_SRC $(COMMON_C_ATTRS)
-C_LIB_ATTRS := I_HDRS STRIP_INC_PREFIX INC_PREFIX $(COMMON_C_ATTRS)
-C_BIN_ATTRS := $(COMMON_C_ATTRS)
+STM32_ELF_ATTRS := S_SRCS LD_SRC FW_INSTALL_PREFIX $(COMMON_C_ATTRS)
+C_LIB_ATTRS := I_HDRS STRIP_INC_PREFIX INC_PREFIX LIB_INCLUDE_INSTALL_PREFIX LIB_INSTALL_PREFIX $(COMMON_C_ATTRS)
+C_BIN_ATTRS := BIN_INSTALL_PREFIX $(COMMON_C_ATTRS)
 PROTO_LIB_ATTRS := PB_SRCS DEPEND
-ZEPHYR_APP_ATTRS := BOARD ZEPHYR_TOOLCHAIN_ARGS
+ZEPHYR_APP_ATTRS := BOARD ZEPHYR_TOOLCHAIN_ARGS FW_INSTALL_PREFIX
 CARGO_PROJ_ATTRS :=
 ALL_ATTRS := $(sort $(foreach rule,$(ALL_RULES),$($(rule)_ATTRS))) $(COMMON_ATTRS)
 
@@ -349,11 +349,13 @@ endef
 
 #
 # Common macro to add "tarball" target for a product
-# [in] - tarball target name, target deps, install prefix
+# [in] - tarball target name, target deps, install prefix name (not value)
 #
 define add_tarball_tgt
+# Unless explicitly specified in product's makefile, use default install prefix
+$$(eval INSTALL_PREFIX := $$(if $$($(3)),$$($(3)),$$(DEFAULT_$(3))))
 $(1):: PRODUCT_OBJDIR := $$(PRODUCT_OBJDIR)
-$(1):: INSTALL_PREFIX := $(3)
+$(1):: INSTALL_PREFIX := $$(INSTALL_PREFIX)
 $(1): $(2)
 	@printf "%$(PCOL)s %s\n" "[TAR]" "$$@"
 	$(Q)tar hcf $$@ $$^ --transform "s|$$(PRODUCT_OBJDIR)|$$(INSTALL_PREFIX)|"

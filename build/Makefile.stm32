@@ -67,7 +67,7 @@ $(LD_MAP): $(ELF)
 
 all.$(PRODUCT): $(ELF) $(BIN) $(HEX)
 
-$(eval $(call add_tarball_tgt,$(FW_TARBALL),$(ELF) $(BIN) $(HEX) $(LD_MAP),$(FW_INSTALL_PREFIX)))
+$(eval $(call add_tarball_tgt,$(FW_TARBALL),$(ELF) $(BIN) $(HEX) $(LD_MAP),FW_INSTALL_PREFIX))
 tarball.$(PRODUCT): $(FW_TARBALL)
 	@true    # avoid "Nothing to be done for .."
 
