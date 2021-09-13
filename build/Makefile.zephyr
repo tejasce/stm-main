@@ -40,6 +40,8 @@ $(ELF): $(ZEPHYR_APP_DEP_FILES) | $(BOARD_PRODUCT_OBJDIR)
 		printf "%$(PCOL)s %s %s\n" "" "Logs:" $(BUILD_LOG)
 	$(Q)$(ZEPHYR_TOOLCHAIN_ARGS) $(WEST) build $(PRODIR) -b $(BOARD) --build-dir $(realpath $(BOARD_PRODUCT_OBJDIR)) > $(BUILD_LOG) 2>&1 || { tail -n 40 $(BUILD_LOG); exit 1; }
 
+$(BIN) $(HEX) $(LD_MAP): $(ELF)
+
 all.$(PRODUCT): $(ELF)
 	@true    # avoid "Nothing to be done for .."
 
