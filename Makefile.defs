@@ -355,5 +355,6 @@ define add_tarball_tgt
 $(1):: PRODUCT_OBJDIR := $$(PRODUCT_OBJDIR)
 $(1):: INSTALL_PREFIX := $(3)
 $(1): $(2)
+	@printf "%$(PCOL)s %s\n" "[TAR]" "$$@"
 	$(Q)tar hcf $$@ $$^ --transform "s|$$(PRODUCT_OBJDIR)|$$(INSTALL_PREFIX)|"
 endef

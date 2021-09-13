@@ -74,7 +74,8 @@ all.$(PRODUCT): $(LIB_SO) $(LIB_AR)
 $(eval $(call add_tarball_tgt,$(LIB_HDR_TARBALL),$(APIHDR),$(LIB_INCLUDE_INSTALL_PREFIX)))
 $(eval $(call add_tarball_tgt,$(LIB_BIN_TARBALL),$(LIB_SO) $(LIB_AR),$(LIB_INSTALL_PREFIX)))
 $(LIB_TARBALL): $(LIB_BIN_TARBALL) $(LIB_HDR_TARBALL)
-	$(Q)for f in $^; do tar --concatenate -f $@ $$f; done
+	@printf "%$(PCOL)s %s\n" "[TAR]" "$@"
+	$(Q)for f in $^; do tar --concatenate -f $@ --absolute-names $$f; done
 
 tarball.$(PRODUCT): $(LIB_TARBALL)
 	@true    # avoid "Nothing to be done for .."
