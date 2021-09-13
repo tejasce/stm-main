@@ -39,12 +39,9 @@ $(BINELF): $(DEP_AR) $(C_OBJS)
 
 all.$(PRODUCT): $(BINELF)
 
-$(BIN_TARBALL):: BIN_INSTALL_PREFIX := $(BIN_INSTALL_PREFIX)
-$(BIN_TARBALL):: PRODUCT_OBJDIR := $(PRODUCT_OBJDIR)
-$(BIN_TARBALL): $(BINELF)
-	tar cf $@ $^ --transform "s|$(PRODUCT_OBJDIR)|$(BIN_INSTALL_PREFIX)|"
-
+$(eval $(call add_tarball_tgt,$(BIN_TARBALL),$(BINELF),$(BIN_INSTALL_PREFIX)))
 tarball.$(PRODUCT): $(BIN_TARBALL)
+	@true    # avoid "Nothing to be done for .."
 
 clean.$(PRODUCT):: BINELF := $(BINELF)
 clean.$(PRODUCT):: C_OBJS := $(C_OBJS)

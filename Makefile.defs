@@ -60,6 +60,11 @@ FW_INSTALL_PREFIX := /usr/lib/firmware
 ALL_RULES := STM32_ELF C_LIB C_BIN PROTO_LIB ZEPHYR_APP CARGO_PROJ
 
 #
+# All Makefile.<rule> must implement these targets
+#
+ALL_GOALS := all clean tarball
+
+#
 # Enumerate name of attributes for each rule to undef them before inclusion
 # of Makefile.<rule> for proper init state for the new "PRODUCT"
 #
@@ -168,8 +173,8 @@ ifeq ($(TOPDIR),)
 #
 ifeq ($(MAKECMDGOALS),)
 $$(eval TARGETS += all.$$(PRODUCT))
-else ifeq ($(filter all clean,$(MAKECMDGOALS)),)
-# Only "all|clean" goals are supported from all dir-levels. Any other goals are
+else ifeq ($(filter $(ALL_GOALS),$(MAKECMDGOALS)),)
+# Only $(ALL_GOALS) goals are supported from all dir-levels. Any other goals are
 # simply run from TOPDIR w/o accumulation and conversion for actual targets
 TARGETS := $(MAKECMDGOALS)
 else
@@ -339,4 +344,16 @@ $(1): $(2)
 		$$(ST_FLASH) erase && $$(ST_FLASH) write $(3) 0x8000000; \
 	fi && \
 	$$(ST_FLASH) reset
+endef
+
+
+#
+# Common macro to add "tarball" target for a product
+# [in] - tarball target name, target deps, install prefix
+#
+define add_tarball_tgt
+$(1):: PRODUCT_OBJDIR := $$(PRODUCT_OBJDIR)
+$(1):: INSTALL_PREFIX := $(3)
+$(1): $(2)
+	$(Q)tar hcf $$@ $$^ --transform "s|$$(PRODUCT_OBJDIR)|$$(INSTALL_PREFIX)|"
 endef

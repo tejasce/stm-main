@@ -43,12 +43,9 @@ $(ELF): $(ZEPHYR_APP_DEP_FILES) | $(BOARD_PRODUCT_OBJDIR)
 all.$(PRODUCT): $(ELF)
 	@true    # avoid "Nothing to be done for .."
 
-$(FW_TARBALL):: FW_INSTALL_PREFIX := $(FW_INSTALL_PREFIX)
-$(FW_TARBALL):: BOARD_PRODUCT_OBJDIR := $(BOARD_PRODUCT_OBJDIR)/zephyr
-$(FW_TARBALL): $(ELF) $(BIN) $(HEX) $(LD_MAP)
-	tar cf $@ $^ --transform "s|$(BOARD_PRODUCT_OBJDIR)|$(FW_INSTALL_PREFIX)|"
-
+$(eval $(call add_tarball_tgt,$(FW_TARBALL),$(ELF) $(BIN) $(HEX) $(LD_MAP),$(FW_INSTALL_PREFIX)))
 tarball.$(PRODUCT): $(FW_TARBALL)
+	@true    # avoid "Nothing to be done for .."
 
 clean.$(PRODUCT):: PRODUCT_OBJDIR := $(PRODUCT_OBJDIR)
 clean.$(PRODUCT):: BOARD_PRODUCT_OBJDIR := $(BOARD_PRODUCT_OBJDIR)

@@ -71,20 +71,13 @@ $(LIB_AR): $(DEP_AR) $(APIHDR) $(C_OBJS)
 
 all.$(PRODUCT): $(LIB_SO) $(LIB_AR)
 
-$(LIB_HDR_TARBALL): LIB_INCLUDE_INSTALL_PREFIX := $(LIB_INCLUDE_INSTALL_PREFIX)
-$(LIB_HDR_TARBALL): PRODUCT_OBJDIR := $(PRODUCT_OBJDIR)
-$(LIB_HDR_TARBALL): $(APIHDR)
-	tar hcf $@ $^ --transform "s|$(PRODUCT_OBJDIR)|$(LIB_INCLUDE_INSTALL_PREFIX)|"
-
-$(LIB_BIN_TARBALL): LIB_INSTALL_PREFIX := $(LIB_INSTALL_PREFIX)
-$(LIB_BIN_TARBALL): PRODUCT_OBJDIR := $(PRODUCT_OBJDIR)
-$(LIB_BIN_TARBALL): $(LIB_SO) $(LIB_AR)
-	tar cf $@ $^ --transform "s|$(PRODUCT_OBJDIR)|$(LIB_INSTALL_PREFIX)|"
-
+$(eval $(call add_tarball_tgt,$(LIB_HDR_TARBALL),$(APIHDR),$(LIB_INCLUDE_INSTALL_PREFIX)))
+$(eval $(call add_tarball_tgt,$(LIB_BIN_TARBALL),$(LIB_SO) $(LIB_AR),$(LIB_INSTALL_PREFIX)))
 $(LIB_TARBALL): $(LIB_BIN_TARBALL) $(LIB_HDR_TARBALL)
 	for f in $^; do tar --concatenate -f $@ $$f; done
 
 tarball.$(PRODUCT): $(LIB_TARBALL)
+	@true    # avoid "Nothing to be done for .."
 
 clean.$(PRODUCT):: LIB_SO := $(LIB_SO)
 clean.$(PRODUCT):: LIB_AR := $(LIB_AR)
