@@ -21,6 +21,11 @@ OBJ_SUBDIRS += $(BOARD_PRODUCT_OBJDIR)
 # Location of built file. Same location also has .bin, .hex and .map files.
 # But since same instance of $(WEST) generates all, use only .elf file as target.
 ELF := $(BOARD_PRODUCT_OBJDIR)/zephyr/zephyr.elf
+BIN := $(ELF:%.elf=%.bin)
+HEX := $(ELF:%.elf=%.hex)
+LD_MAP := $(ELF:%.elf=%.map)
+# Location of tarball is at higher PRODUCT_OBJDIR since filename contains board info
+FW_TARBALL := $(PRODUCT_OBJDIR)/$(ZEPHYR_APP).tar
 
 # List of files as dependency to build $(ELF)
 ZEPHYR_APP_DEP_FILES := $(shell find $(PRODIR) -name "*.[c|h]" -o -name "*.proto" -o -name "CMakeLists.txt" -o -name "prj.conf")
@@ -38,11 +43,19 @@ $(ELF): $(ZEPHYR_APP_DEP_FILES) | $(BOARD_PRODUCT_OBJDIR)
 all.$(PRODUCT): $(ELF)
 	@true    # avoid "Nothing to be done for .."
 
+$(FW_TARBALL):: FW_INSTALL_PREFIX := $(FW_INSTALL_PREFIX)
+$(FW_TARBALL):: BOARD_PRODUCT_OBJDIR := $(BOARD_PRODUCT_OBJDIR)/zephyr
+$(FW_TARBALL): $(ELF) $(BIN) $(HEX) $(LD_MAP)
+	tar cf $@ $^ --transform "s|$(BOARD_PRODUCT_OBJDIR)|$(FW_INSTALL_PREFIX)|"
+
+tarball.$(PRODUCT): $(FW_TARBALL)
+
 clean.$(PRODUCT):: PRODUCT_OBJDIR := $(PRODUCT_OBJDIR)
 clean.$(PRODUCT):: BOARD_PRODUCT_OBJDIR := $(BOARD_PRODUCT_OBJDIR)
+clean.$(PRODUCT):: FW_TARBALL := $(FW_TARBALL)
 clean.$(PRODUCT):
-	@printf "%$(PCOL)s %s\n" "[RM]" $(BOARD_PRODUCT_OBJDIR)
-	$(Q)rm -rf $(BOARD_PRODUCT_OBJDIR)
+	@printf "%$(PCOL)s %s\n" "[RM]" "$(BOARD_PRODUCT_OBJDIR)|.tar"
+	$(Q)rm -rf $(BOARD_PRODUCT_OBJDIR) $(FW_TARBALL)
 	$(Q)rmdir $(PRODUCT_OBJDIR) 2>/dev/null || true
 
 # Add ease-of-use "flash" target to program the product on a [ST-Micro] board

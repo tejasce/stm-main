@@ -48,6 +48,11 @@ PROTOBUF_LFLAGS := -L/usr/local/$(ARCH)/lib -lprotobuf -lpthread
 PCOL := 12
 # For clang-tidy. Enumerate flags that clang doesn't support to filter them out
 CLANG_UNSUPPORTED_CFLAGS := -mcpu=cortex-m4 -mthumb-interwork
+# Default install prefix (can be overriden by individual product makefiles)
+LIB_INCLUDE_INSTALL_PREFIX := /usr/include
+LIB_INSTALL_PREFIX := /usr/lib
+BIN_INSTALL_PREFIX := /usr/bin
+FW_INSTALL_PREFIX := /usr/lib/firmware
 
 #
 # All supported rules
@@ -122,7 +127,7 @@ PRODIR := $(1)
 DIR_TGT := $$(PRODIR) $$(PRODIR)/
 .PHONY: $$(DIR_TGT)
 $$(DIR_TGT):
-	$(Q)$$(MAKE) --no-print-directory -C $$@ $$(if $$(clean),clean,all)
+	$(Q)$$(MAKE) --no-print-directory -C $$@ $$(if $$(clean),clean,$$(if $$(tarball),tarball,all))
 
 else
 PRODIR := $(shell realpath . --relative-to $(_TOPDIR_))/$(subst ./,,$(1))
@@ -192,7 +197,7 @@ else
 # "flash" target is applicable only to specific products and hence
 # defined only here
 #
-$(PRODIR)\:$(2): $$(if $$(clean),clean,$$(if $$(flash),flash,all)).$$(PRODUCT)
+$(PRODIR)\:$(2): $$(if $$(clean),clean,$$(if $$(flash),flash,$$(if $$(tarball),tarball,all))).$$(PRODUCT)
 
 include $(Makefile.$(1))
 endif

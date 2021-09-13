@@ -20,7 +20,7 @@ OBJDIR_PREFIX := objs.
 # source in this repo. All the non-build targets that works
 # both in and out of buildenv shell are filtered for this rule.
 # One more excpetion is $(flash) flag which is necessary on OSX.
-#
+
 ifeq ($(BUILDENV_SHELL)$(flash),)
 ifeq ($(filter clean% clobber %env format help%,$(MAKECMDGOALS)),)
 $(error Run "make env" first. See "make help")
@@ -59,6 +59,7 @@ $(sort $(OBJ_SUBDIRS)):
 # Top-level targets that calls targets at lower levels
 #
 all: $(patsubst %,all.%,$(PRODUCTS))
+tarball: $(patsubst %,tarball.%,$(PRODUCTS))
 ifeq ("$(origin ARCH)","command line")
 clean:
 	@printf "%$(PCOL)s %s\n" "[RM]" "$(OBJDIR_PREFIX)$(ARCH)"

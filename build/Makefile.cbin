@@ -5,6 +5,7 @@ ifdef C_BIN
 PRODUCT_OBJDIR := $(OBJDIR)/$(PRODIR)
 
 BINELF := $(PRODUCT_OBJDIR)/$(C_BIN)
+BIN_TARBALL := $(BINELF:%=%.tar)
 
 H_INCS := $(H_DIRS:%=-I$(PRODIR)/%)
 C_OBJS := $(patsubst %.c,$(OBJDIR)/$(PRODIR)/%.o,$(filter %.c,$(C_SRCS)))
@@ -38,13 +39,21 @@ $(BINELF): $(DEP_AR) $(C_OBJS)
 
 all.$(PRODUCT): $(BINELF)
 
+$(BIN_TARBALL):: BIN_INSTALL_PREFIX := $(BIN_INSTALL_PREFIX)
+$(BIN_TARBALL):: PRODUCT_OBJDIR := $(PRODUCT_OBJDIR)
+$(BIN_TARBALL): $(BINELF)
+	tar cf $@ $^ --transform "s|$(PRODUCT_OBJDIR)|$(BIN_INSTALL_PREFIX)|"
+
+tarball.$(PRODUCT): $(BIN_TARBALL)
+
 clean.$(PRODUCT):: BINELF := $(BINELF)
 clean.$(PRODUCT):: C_OBJS := $(C_OBJS)
+clean.$(PRODUCT):: BIN_TARBALL := $(BIN_TARBALL)
 clean.$(PRODUCT):: PRODUCT_OBJDIR := $(PRODUCT_OBJDIR)
 clean.$(PRODUCT):: METADATA_FILE := $(METADATA_FILE)
 clean.$(PRODUCT):
-	@printf "%$(PCOL)s %s\n" "[RM]" $(BINELF)
-	$(Q)rm -f $(BINELF) $(C_OBJS) $(C_OBJS:%.o=%.d) $(METADATA_FILE)
+	@printf "%$(PCOL)s %s\n" "[RM]" "$(BINELF)|.tar"
+	$(Q)rm -f $(BINELF) $(BIN_TARBALL) $(C_OBJS) $(C_OBJS:%.o=%.d) $(METADATA_FILE)
 	$(Q)$(call del_empty_dirs,$(PRODUCT_OBJDIR))
 
 endif  # define C_BIN
