@@ -349,14 +349,19 @@ endef
 
 #
 # Common macro to add "tarball" target for a product
-# [in] - tarball target name, target deps, install prefix name (not value)
+# [in] - tarball target name, target deps, install prefix name (not value),
+#        transform path (optional)
 #
 define add_tarball_tgt
 # Unless explicitly specified in product's makefile, use default install prefix
 $$(eval INSTALL_PREFIX := $$(if $$($(3)),$$($(3)),$$(DEFAULT_$(3))))
-$(1):: PRODUCT_OBJDIR := $$(PRODUCT_OBJDIR)
+
+# Allow to transform a variation of $(PRODUCT_OBJDIR) path
+$$(eval PROD_OBJDIR_PREFIX := $$(if $(4),$(4),$$(PRODUCT_OBJDIR)))
+
+$(1):: PROD_OBJDIR_PREFIX := $$(PROD_OBJDIR_PREFIX)
 $(1):: INSTALL_PREFIX := $$(INSTALL_PREFIX)
 $(1): $(2)
 	@printf "%$(PCOL)s %s\n" "[TAR]" "$$@"
-	$(Q)tar hcf $$@ $$^ --transform "s|$$(PRODUCT_OBJDIR)|$$(INSTALL_PREFIX)|"
+	$(Q)tar hcf $$@ $$^ --transform "s|$$(PROD_OBJDIR_PREFIX)|$$(INSTALL_PREFIX)|"
 endef
