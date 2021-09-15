@@ -363,5 +363,7 @@ $(1):: PROD_OBJDIR_PREFIX := $$(PROD_OBJDIR_PREFIX)
 $(1):: INSTALL_PREFIX := $$(INSTALL_PREFIX)
 $(1): $(2)
 	@printf "%$(PCOL)s %s\n" "[TAR]" "$$@"
-	$(Q)tar hcf $$@ $$^ --transform "s|$$(PROD_OBJDIR_PREFIX)|$$(INSTALL_PREFIX)|"
+	$(Q)if [ -n "$$^" ]; then \
+		tar hcf $$@ $$^ --transform "s|$$(PROD_OBJDIR_PREFIX)|$$(INSTALL_PREFIX)|"; \
+	fi
 endef
