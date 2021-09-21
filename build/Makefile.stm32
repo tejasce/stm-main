@@ -69,7 +69,7 @@ all.$(PRODUCT): $(ELF) $(BIN) $(HEX)
 
 # Add STM32_ELF product directory to install path
 STM32_ELF_INSTALL_PREFIX := $(patsubst %/,%,$(dir $(PRODUCT_OBJDIR)))
-$(eval $(call add_tarball_tgt,$(FW_TARBALL),$(ELF) $(BIN) $(HEX) $(LD_MAP),FW_INSTALL_PREFIX,$(STM32_ELF_INSTALL_PREFIX)))
+$(eval $(call add_tarball_tgt,$(FW_TARBALL),$(ELF) $(BIN) $(HEX) $(LD_MAP),FW_INSTALL_PREFIX,$(STM32_ELF_INSTALL_PREFIX),TAR_INSTALL_MODE))
 tarball.$(PRODUCT): $(FW_TARBALL)
 	@true    # avoid "Nothing to be done for .."
 

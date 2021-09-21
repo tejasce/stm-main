@@ -71,8 +71,10 @@ $(LIB_AR): $(DEP_AR) $(APIHDR) $(C_OBJS)
 
 all.$(PRODUCT): $(LIB_SO) $(LIB_AR)
 
-$(eval $(call add_tarball_tgt,$(LIB_HDR_TARBALL),$(APIHDR),LIB_INCLUDE_INSTALL_PREFIX))
-$(eval $(call add_tarball_tgt,$(LIB_BIN_TARBALL),$(LIB_SO) $(LIB_AR),LIB_INSTALL_PREFIX))
+# No special install-prefix for a clib
+CLIB_ELF_INSTALL_PREFIX :=
+$(eval $(call add_tarball_tgt,$(LIB_HDR_TARBALL),$(APIHDR),LIB_INCLUDE_INSTALL_PREFIX,$(CLIB_ELF_INSTALL_PREFIX),TAR_INSTALL_MODE))
+$(eval $(call add_tarball_tgt,$(LIB_BIN_TARBALL),$(LIB_SO) $(LIB_AR),LIB_INSTALL_PREFIX,$(CLIB_ELF_INSTALL_PREFIX),TAR_INSTALL_MODE))
 $(LIB_TARBALL): $(LIB_BIN_TARBALL) $(LIB_HDR_TARBALL)
 	@printf "%$(PCOL)s %s\n" "[TAR]" "$@"
 	$(Q)for f in $^; do \
