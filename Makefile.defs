@@ -48,6 +48,12 @@ PROTOBUF_LFLAGS := -L/usr/local/$(ARCH)/lib -lprotobuf -lpthread
 PCOL := 12
 # For clang-tidy. Enumerate flags that clang doesn't support to filter them out
 CLANG_UNSUPPORTED_CFLAGS := -mcpu=cortex-m4 -mthumb-interwork
+# Default install prefix (can be overriden at command-line and by individual product makefiles)
+DEFAULT_LIB_INCLUDE_INSTALL_PREFIX ?= /usr/include
+DEFAULT_LIB_INSTALL_PREFIX ?= /usr/lib
+DEFAULT_BIN_INSTALL_PREFIX ?= /usr/bin
+DEFAULT_FW_INSTALL_PREFIX ?= /usr/lib/firmware
+DEFAULT_TAR_INSTALL_MODE ?=
 
 #
 # All supported rules
@@ -55,16 +61,21 @@ CLANG_UNSUPPORTED_CFLAGS := -mcpu=cortex-m4 -mthumb-interwork
 ALL_RULES := STM32_ELF C_LIB C_BIN PROTO_LIB ZEPHYR_APP CARGO_PROJ
 
 #
+# All Makefile.<rule> must implement these targets
+#
+ALL_GOALS := all clean tarball
+
+#
 # Enumerate name of attributes for each rule to undef them before inclusion
 # of Makefile.<rule> for proper init state for the new "PRODUCT"
 #
 COMMON_ATTRS := PRODUCT
 COMMON_C_ATTRS := CFLAGS CXXFLAGS LFLAGS H_DIRS C_SRCS DEPEND NO_LINT
-STM32_ELF_ATTRS := S_SRCS LD_SRC $(COMMON_C_ATTRS)
-C_LIB_ATTRS := I_HDRS STRIP_INC_PREFIX INC_PREFIX $(COMMON_C_ATTRS)
-C_BIN_ATTRS := $(COMMON_C_ATTRS)
+STM32_ELF_ATTRS := S_SRCS LD_SRC FW_INSTALL_PREFIX TAR_INSTALL_MODE $(COMMON_C_ATTRS)
+C_LIB_ATTRS := I_HDRS STRIP_INC_PREFIX INC_PREFIX LIB_INCLUDE_INSTALL_PREFIX LIB_INSTALL_PREFIX TAR_INSTALL_MODE $(COMMON_C_ATTRS)
+C_BIN_ATTRS := BIN_INSTALL_PREFIX TAR_INSTALL_MODE $(COMMON_C_ATTRS)
 PROTO_LIB_ATTRS := PB_SRCS DEPEND
-ZEPHYR_APP_ATTRS := BOARD ZEPHYR_TOOLCHAIN_ARGS
+ZEPHYR_APP_ATTRS := BOARD ZEPHYR_TOOLCHAIN_ARGS FW_INSTALL_PREFIX TAR_INSTALL_MODE
 CARGO_PROJ_ATTRS :=
 ALL_ATTRS := $(sort $(foreach rule,$(ALL_RULES),$($(rule)_ATTRS))) $(COMMON_ATTRS)
 
@@ -122,7 +133,7 @@ PRODIR := $(1)
 DIR_TGT := $$(PRODIR) $$(PRODIR)/
 .PHONY: $$(DIR_TGT)
 $$(DIR_TGT):
-	$(Q)$$(MAKE) --no-print-directory -C $$@ $$(if $$(clean),clean,all)
+	$(Q)$$(MAKE) --no-print-directory -C $$@ $$(if $$(clean),clean,$$(if $$(tarball),tarball,all))
 
 else
 PRODIR := $(shell realpath . --relative-to $(_TOPDIR_))/$(subst ./,,$(1))
@@ -163,8 +174,8 @@ ifeq ($(TOPDIR),)
 #
 ifeq ($(MAKECMDGOALS),)
 $$(eval TARGETS += all.$$(PRODUCT))
-else ifeq ($(filter all clean,$(MAKECMDGOALS)),)
-# Only "all|clean" goals are supported from all dir-levels. Any other goals are
+else ifeq ($(filter $(ALL_GOALS),$(MAKECMDGOALS)),)
+# Only $(ALL_GOALS) goals are supported from all dir-levels. Any other goals are
 # simply run from TOPDIR w/o accumulation and conversion for actual targets
 TARGETS := $(MAKECMDGOALS)
 else
@@ -192,7 +203,7 @@ else
 # "flash" target is applicable only to specific products and hence
 # defined only here
 #
-$(PRODIR)\:$(2): $$(if $$(clean),clean,$$(if $$(flash),flash,all)).$$(PRODUCT)
+$(PRODIR)\:$(2): $$(if $$(clean),clean,$$(if $$(flash),flash,$$(if $$(tarball),tarball,all))).$$(PRODUCT)
 
 include $(Makefile.$(1))
 endif
@@ -334,4 +345,30 @@ $(1): $(2)
 		$$(ST_FLASH) erase && $$(ST_FLASH) write $(3) 0x8000000; \
 	fi && \
 	$$(ST_FLASH) reset
+endef
+
+
+#
+# Common macro to add "tarball" target for a product
+# [in] - tarball target name, target deps, install prefix name (not value),
+#        transform path (optional)
+#
+define add_tarball_tgt
+# Unless explicitly specified in product's makefile, use default install prefix
+$$(eval INSTALL_PREFIX := $$(if $$($(3)),$$($(3)),$$(DEFAULT_$(3))))
+
+# Allow to transform a variation of $(PRODUCT_OBJDIR) path
+$$(eval PROD_OBJDIR_PREFIX := $$(if $(4),$(4),$$(PRODUCT_OBJDIR)))
+
+# Unless explicitly specified in product's makefile, use default tar install mode
+$$(eval INSTALL_MODE := $$(if $$($(5)),$$($(5)),$$(DEFAULT_$(5))))
+
+$(1):: PROD_OBJDIR_PREFIX := $$(PROD_OBJDIR_PREFIX)
+$(1):: INSTALL_PREFIX := $$(INSTALL_PREFIX)
+$(1):: INSTALL_MODE := $$(if $$(INSTALL_MODE),--mode $$(INSTALL_MODE),)
+$(1): $(2)
+	@printf "%$(PCOL)s %s\n" "[TAR]" "$$@"
+	$(Q)if [ -n "$$^" ]; then \
+		tar hcf $$@ $$(INSTALL_MODE) $$^ --transform "s|$$(PROD_OBJDIR_PREFIX)|$$(INSTALL_PREFIX)|"; \
+	fi
 endef

@@ -52,6 +52,9 @@ $(LIB_AR): $(DEP_AR) $(PB_CC_OBJS)
 all.$(PRODUCT): $(LIB_SO) $(LIB_AR)
 	@true    # avoid "Nothing to be done for .."
 
+tarball.$(PRODUCT):
+	@true    # not applicable (for now)
+
 clean.$(PRODUCT):: LIB_SO := $(LIB_SO)
 clean.$(PRODUCT):: LIB_AR := $(LIB_AR)
 clean.$(PRODUCT):: PB_CC_OBJS := $(PB_CC_OBJS)

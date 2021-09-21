@@ -59,6 +59,7 @@ $(sort $(OBJ_SUBDIRS)):
 # Top-level targets that calls targets at lower levels
 #
 all: $(patsubst %,all.%,$(PRODUCTS))
+tarball: $(patsubst %,tarball.%,$(PRODUCTS))
 ifeq ("$(origin ARCH)","command line")
 clean:
 	@printf "%$(PCOL)s %s\n" "[RM]" "$(OBJDIR_PREFIX)$(ARCH)"
@@ -98,6 +99,7 @@ help:
 	@echo "Build Targets"
 	@echo "          all: build all $(ARCH) products (default)"
 	@echo "        clean: remove all previously built $(ARCH) products"
+	@echo "      tarball: create individual tarball of previously built $(ARCH) products"
 	@echo "     cleanall: remove all products for all targets architectues"
 	@echo "      clobber: cleanall + remove cscope/ctags"
 	@echo "       format: run 'clang-format' on new+modified files on this branch"
@@ -105,10 +107,12 @@ help:
 	@echo "<path>[:prod]: build all $(ARCH) products for <path> and subdirs below"
 	@echo "               if specified, build only the product "prod" in the <path>"
 	@echo "               Specify \"clean=1\" to clean"
+	@echo "               Specify \"tarball=1\" to create tarball of the built product"
 	@echo "               Specify \"flash=1\" to program f/w binary (when applicable)"
 	@echo "               For example, make libs/common"
 	@echo "                            make cmds/common/pb_example:list_people"
 	@echo "                            make libs/common clean=1"
+	@echo "                            make firmware/zephyr/hello_world tarball=1"
 	@echo "                            make firmware/zephyr/hello_world:hello_world.nucleo_f401re flash=1"
 	@echo
 	@$(MAKE) --no-print-directory help.buildenv

@@ -4,8 +4,12 @@ ifdef C_LIB
 
 PRODUCT_OBJDIR := $(OBJDIR)/$(PRODIR)
 
-LIB_SO := $(PRODUCT_OBJDIR)/lib$(C_LIB).so
+LIB_NAME := lib$(C_LIB)
+LIB_SO := $(PRODUCT_OBJDIR)/$(LIB_NAME).so
 LIB_AR := $(LIB_SO:%.so=%.a)
+LIB_HDR_TARBALL := $(LIB_SO:%.so=%-headers.tar)
+LIB_BIN_TARBALL := $(LIB_SO:%.so=%-bin.tar)
+LIB_TARBALL := $(LIB_SO:%.so=%.tar)
 
 H_INCS := $(H_DIRS:%=-I$(PRODIR)/%)
 C_OBJS := $(patsubst %.c,$(OBJDIR)/$(PRODIR)/%.o,$(filter %.c,$(C_SRCS)))
@@ -67,16 +71,34 @@ $(LIB_AR): $(DEP_AR) $(APIHDR) $(C_OBJS)
 
 all.$(PRODUCT): $(LIB_SO) $(LIB_AR)
 
+# No special install-prefix for a clib
+CLIB_ELF_INSTALL_PREFIX :=
+$(eval $(call add_tarball_tgt,$(LIB_HDR_TARBALL),$(APIHDR),LIB_INCLUDE_INSTALL_PREFIX,$(CLIB_ELF_INSTALL_PREFIX),TAR_INSTALL_MODE))
+$(eval $(call add_tarball_tgt,$(LIB_BIN_TARBALL),$(LIB_SO) $(LIB_AR),LIB_INSTALL_PREFIX,$(CLIB_ELF_INSTALL_PREFIX),TAR_INSTALL_MODE))
+$(LIB_TARBALL): $(LIB_BIN_TARBALL) $(LIB_HDR_TARBALL)
+	@printf "%$(PCOL)s %s\n" "[TAR]" "$@"
+	$(Q)for f in $^; do \
+		if [ -f "$$f" ]; then \
+			tar --concatenate -f $@ --absolute-names $$f; \
+		fi; \
+	 done;
+
+tarball.$(PRODUCT): $(LIB_TARBALL)
+	@true    # avoid "Nothing to be done for .."
+
 clean.$(PRODUCT):: LIB_SO := $(LIB_SO)
 clean.$(PRODUCT):: LIB_AR := $(LIB_AR)
 clean.$(PRODUCT):: APIHDR := $(APIHDR)
 clean.$(PRODUCT):: C_OBJS := $(C_OBJS)
+clean.$(PRODUCT):: LIB_HDR_TARBALL := $(LIB_HDR_TARBALL)
+clean.$(PRODUCT):: LIB_BIN_TARBALL := $(LIB_BIN_TARBALL)
+clean.$(PRODUCT):: LIB_TARBALL := $(LIB_TARBALL)
 clean.$(PRODUCT):: PRODUCT_OBJDIR := $(PRODUCT_OBJDIR)
 clean.$(PRODUCT):: INC_PREFIX := $(PRODUCT_OBJDIR)/$(INC_PREFIX)
 clean.$(PRODUCT):: METADATA_FILE := $(METADATA_FILE)
 clean.$(PRODUCT):
-	@printf "%$(PCOL)s %s\n" "[RM]" "$(LIB_SO)|.a"
-	$(Q)rm -f $(LIB_SO) $(LIB_AR) $(APIHDR) $(C_OBJS) $(C_OBJS:%.o=%.d) $(METADATA_FILE)
+	@printf "%$(PCOL)s %s\n" "[RM]" "$(LIB_SO)|.a|.tar"
+	$(Q)rm -f $(LIB_SO) $(LIB_AR) $(APIHDR) $(LIB_HDR_TARBALL) $(LIB_BIN_TARBALL) $(LIB_TARBALL) $(C_OBJS) $(C_OBJS:%.o=%.d) $(METADATA_FILE)
 	$(Q)$(call del_empty_dirs,$(PRODUCT_OBJDIR))
 
 endif  # define C_LIB

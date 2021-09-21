@@ -11,6 +11,7 @@ ELF := $(PRODUCT_OBJDIR)/$(STM32_ELF).elf
 BIN := $(ELF:%.elf=%.bin)
 HEX := $(ELF:%.elf=%.hex)
 LD_MAP := $(ELF:%.elf=%.map)
+FW_TARBALL := $(ELF:%.elf=%.tar)
 
 H_INCS := $(H_DIRS:%=-I$(PRODIR)/%)
 C_OBJS := $(C_SRCS:%.c=$(OBJDIR)/$(PRODIR)/%.o)
@@ -62,19 +63,28 @@ $(HEX): $(ELF)
 	@printf "%$(PCOL)s %s\n" "[OBJCOPY]" $@
 	$(Q)$(OBJCOPY) -Oihex $^ $@
 
+$(LD_MAP): $(ELF)
+
 all.$(PRODUCT): $(ELF) $(BIN) $(HEX)
+
+# Add STM32_ELF product directory to install path
+STM32_ELF_INSTALL_PREFIX := $(patsubst %/,%,$(dir $(PRODUCT_OBJDIR)))
+$(eval $(call add_tarball_tgt,$(FW_TARBALL),$(ELF) $(BIN) $(HEX) $(LD_MAP),FW_INSTALL_PREFIX,$(STM32_ELF_INSTALL_PREFIX),TAR_INSTALL_MODE))
+tarball.$(PRODUCT): $(FW_TARBALL)
+	@true    # avoid "Nothing to be done for .."
 
 clean.$(PRODUCT):: ELF := $(ELF)
 clean.$(PRODUCT):: BIN := $(BIN)
 clean.$(PRODUCT):: HEX := $(HEX)
 clean.$(PRODUCT):: LD_MAP := $(LD_MAP)
+clean.$(PRODUCT):: FW_TARBALL := $(FW_TARBALL)
 clean.$(PRODUCT):: C_OBJS := $(C_OBJS)
 clean.$(PRODUCT):: S_OBJS := $(S_OBJS)
 clean.$(PRODUCT):: PRODUCT_OBJDIR := $(PRODUCT_OBJDIR)
 clean.$(PRODUCT):: METADATA_FILE := $(METADATA_FILE)
 clean.$(PRODUCT):
-	@printf "%$(PCOL)s %s\n" "[RM]" "$(ELF)|.bin|.hex|.map"
-	$(Q)rm -f $(ELF) $(BIN) $(HEX) $(LD_MAP) $(S_OBJS) $(C_OBJS) $(C_OBJS:%.o=%.d) $(METADATA_FILE)
+	@printf "%$(PCOL)s %s\n" "[RM]" "$(ELF)|.bin|.hex|.map|.tar"
+	$(Q)rm -f $(ELF) $(BIN) $(HEX) $(LD_MAP) $(FW_TARBALL) $(S_OBJS) $(C_OBJS) $(C_OBJS:%.o=%.d) $(METADATA_FILE)
 	$(Q)$(call del_empty_dirs,$(PRODUCT_OBJDIR))
 
 # Add ease-of-use "flash" target to program the product on a [ST-Micro] board
