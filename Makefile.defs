@@ -425,7 +425,7 @@ PKGFILES := $$(foreach dep,$$(PKGDEPS),$$(shell echo '$$(PRODTAR)' | jq -r '."$$
 
 $$(PKGPATH): $$(PKGFILES)
 	@printf "%$(PCOL)s %s\n" "[PKG]" "$$@"
-	$(Q) $$(call concat_tars,$$@,$$^)
+	$(Q)$$(call concat_tars,$$@,$$^)
 
 pkg.$(1): $$(PKGPATH)
 endef
