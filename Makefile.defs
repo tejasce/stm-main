@@ -414,7 +414,8 @@ PKGVER := $$(shell jq -r '.$(1).version // empty' $(PKG_JSON))
 PKGVER := $$(if $$(PKGVER),$$(PKGVER)$(DIRTY),$(CHANGESET))
 
 # Designated package path ($(ARCH) dependent)
-PKGPATH := $(OBJDIR)/$(1)-$(ARCH)-$$(PKGVER).tar
+PKGPATH_PREFIX := $(OBJDIR)/$(1)-$(ARCH)-
+PKGPATH := $$(PKGPATH_PREFIX)$$(PKGVER).tar
 
 # Derive package tar file paths from deps
 PKGDEPS := $$(sort $$(shell jq -r '.$(1).deps[] // empty' $(PKG_JSON) 2>/dev/null))
@@ -427,7 +428,12 @@ $$(PKGPATH): $$(PKGFILES)
 	@printf "%$(PCOL)s %s\n" "[PKG]" "$$@"
 	$(Q)$$(call concat_tars,$$@,$$^)
 
-pkg.$(1): $$(PKGPATH)
+clean.pkg.$(1):: PKGPATH_PREFIX := $$(PKGPATH_PREFIX)
+clean.pkg.$(1):
+	@printf "%$(PCOL)s %s\n" "[RM]" "$$(PKGPATH_PREFIX)*.tar"
+	$(Q)rm -f $$(PKGPATH_PREFIX)*.tar
+
+pkg.$(1): $$(if $$(clean),clean.pkg.$(1),$$(PKGPATH))
 endef
 
 #
