@@ -42,6 +42,8 @@ all.$(PRODUCT): $(BINELF)
 # No special install-prefix for a cbin
 CBIN_ELF_INSTALL_PREFIX :=
 $(eval $(call add_tarball_tgt,$(BIN_TARBALL),$(BINELF),BIN_INSTALL_PREFIX,$(CBIN_ELF_INSTALL_PREFIX),TAR_INSTALL_MODE))
+# Add to [product path, tarball path] "dictionary"
+$(eval $(call update_prodtar,$(PRODPATH),$(BIN_TARBALL)))
 tarball.$(PRODUCT): $(BIN_TARBALL)
 	@true    # avoid "Nothing to be done for .."
 
