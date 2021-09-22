@@ -1,17 +1,17 @@
 {
-	"example_w_version" : {
-		"version" : "0.0.1",
-		"deps": [
-			"libs/common/hello:hello",
-			"libs/common/hello_cpp:hello_cpp",
-			"cmds/common/hello_world_cpp:hello_world_cpp",
-                        "firmware/nucleo/Lidar_Delivery:lidar_delivery"
-		]
-	},
-	"example_wo_version" : {
-		"deps": [
-                        "firmware/zephyr/hello_world:hello_world.nucleo_f401re",
-			"cmds/common/hello_world:hello_world"
-		]
-	}
+    "example_w_version" : {
+        "version" : "0.0.1",
+        "deps": [
+            "libs/common/hello:hello",
+            "libs/common/hello_cpp:hello_cpp",
+            "cmds/common/hello_world_cpp:hello_world_cpp",
+            "firmware/nucleo/Lidar_Delivery:lidar_delivery"
+        ]
+    },
+    "example_wo_version" : {
+        "deps": [
+            "firmware/zephyr/hello_world:hello_world.nucleo_f401re",
+            "cmds/common/hello_world:hello_world"
+        ]
+    }
 }
