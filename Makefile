@@ -46,7 +46,7 @@ endif
 #
 PRODUCTS :=
 OBJ_SUBDIRS :=
-PACKAGES :=
+PKGS :=
 PRODTAR := {}
 
 #
@@ -73,7 +73,7 @@ $(sort $(OBJ_SUBDIRS)):
 #
 all: $(patsubst %,all.%,$(PRODUCTS))
 tarball: $(patsubst %,tarball.%,$(PRODUCTS))
-pkg: $(patsubst %,pkg.%,$(PACKAGES))
+pkg: $(patsubst %,pkg.%,$(PKGS))
 ifeq ("$(origin ARCH)","command line")
 clean:
 	@printf "%$(PCOL)s %s\n" "[RM]" "$(OBJDIR_PREFIX)$(ARCH)"

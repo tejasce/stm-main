@@ -407,7 +407,7 @@ endef
 #
 define pkg_tgt
 # For top Makefile
-PACKAGES += $(1)
+PKGS += $(1)
 
 # Use version string if specified, changeset string otherwise
 PKGVER := $$(shell jq -r '.$(1).version // empty' $(PKG_JSON))
