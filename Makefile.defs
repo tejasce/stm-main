@@ -392,6 +392,7 @@ endef
 # [in] - path of combined .tar file to create, one or more constituent .tar files
 #
 define concat_tars
+	rm -f $(1) && \
 	for f in $(2); do \
 		if [ -f "$$f" ]; then \
 			tar --concatenate -f $(1) --absolute-names $$f; \
@@ -416,6 +417,7 @@ PKGVER := $$(if $$(PKGVER),$$(PKGVER)$(DIRTY),$(CHANGESET))
 # Designated package path ($(ARCH) dependent)
 PKGPATH_PREFIX := $(OBJDIR)/$(1)-$(ARCH)-
 PKGPATH := $$(PKGPATH_PREFIX)$$(PKGVER).tar
+PKGPATH_COMPRESSED := $$(PKGPATH).gz
 
 # Derive package tar file paths from deps
 PKGDEPS := $$(sort $$(shell jq -r '.$(1).deps[] // empty' $(PKG_JSON) 2>/dev/null))
@@ -428,12 +430,16 @@ $$(PKGPATH): $$(PKGFILES)
 	@printf "%$(PCOL)s %s\n" "[PKG]" "$$@"
 	$(Q)$$(call concat_tars,$$@,$$^)
 
+$$(PKGPATH_COMPRESSED): $$(PKGPATH)
+	@printf "%$(PCOL)s %s\n" "[GZIP]" "$$@"
+	$(Q)gzip -9 < $$^ > $$@
+
 clean.pkg.$(1):: PKGPATH_PREFIX := $$(PKGPATH_PREFIX)
 clean.pkg.$(1):
-	@printf "%$(PCOL)s %s\n" "[RM]" "$$(PKGPATH_PREFIX)*.tar"
-	$(Q)rm -f $$(PKGPATH_PREFIX)*.tar
+	@printf "%$(PCOL)s %s\n" "[RM]" "$$(PKGPATH_PREFIX)*.tar*"
+	$(Q)rm -f $$(PKGPATH_PREFIX)*.tar*
 
-pkg.$(1): $$(if $$(clean),clean.pkg.$(1),$$(PKGPATH))
+pkg.$(1): $$(if $$(clean),clean.pkg.$(1),$$(PKGPATH_COMPRESSED))
 endef
 
 #
