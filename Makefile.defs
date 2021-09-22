@@ -353,7 +353,7 @@ endef
 
 
 #
-# Macro to create dictionary of product-path to its tarball path as JSON object
+# Macro to create dictionary of { product-path, tarball-path } as JSON object
 # [in] - product path, product tarball path (i.e. tarball target name)
 #
 define update_prodtar

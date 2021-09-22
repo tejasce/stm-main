@@ -58,7 +58,7 @@ include $(shell git rev-parse --show-toplevel)/Makefile.defs
 $(eval $(call inc_subdir,$(THIS_DIR),$(SUBDIRS)))
 
 #
-# Define pkg targets for entries in pkgs.json
+# Define pkg targets for entries in $(PKG_JSON)
 #
 $(eval $(call add_pkg_tgt))
 
