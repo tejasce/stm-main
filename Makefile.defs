@@ -436,8 +436,8 @@ $$(PKGPATH_COMPRESSED): $$(PKGPATH)
 
 clean.pkg.$(1):: PKGPATH_PREFIX := $$(PKGPATH_PREFIX)
 clean.pkg.$(1):
-	@printf "%$(PCOL)s %s\n" "[RM]" "$$(PKGPATH_PREFIX)*.tar*"
-	$(Q)rm -f $$(PKGPATH_PREFIX)*.tar*
+	@printf "%$(PCOL)s %s\n" "[RM]" "$$(PKGPATH_PREFIX)*.{tar,tar.gz}"
+	$(Q)rm -f $$(PKGPATH_PREFIX)*.{tar,tar.gz}
 
 pkg.$(1): $$(if $$(clean),clean.pkg.$(1),$$(PKGPATH_COMPRESSED))
 endef
