@@ -411,16 +411,16 @@ define pkg_tgt
 PKGS += $(1)
 
 # Use version string if specified, changeset string otherwise
-PKGVER := $$(shell jq -r '.$(1).version // empty' $(PKG_JSON))
+PKGVER := $$(shell jq -r '."$(1)".version // empty' $(PKG_JSON))
 PKGVER := $$(if $$(PKGVER),$$(PKGVER)$(DIRTY),$(CHANGESET))
 
 # Designated package path ($(ARCH) dependent)
-PKGPATH_PREFIX := $(OBJDIR)/$(1)-$(ARCH)-
-PKGPATH := $$(PKGPATH_PREFIX)$$(PKGVER).tar
+PKGPATH_PREFIX := $(OBJDIR)/$(1)
+PKGPATH := $$(PKGPATH_PREFIX)_$$(PKGVER)_$(ARCH).tar
 PKGPATH_COMPRESSED := $$(PKGPATH).gz
 
 # Derive package tar file paths from deps
-PKGDEPS := $$(sort $$(shell jq -r '.$(1).deps[] // empty' $(PKG_JSON) 2>/dev/null))
+PKGDEPS := $$(sort $$(shell jq -r '."$(1)".deps[] // empty' $(PKG_JSON) 2>/dev/null))
 ifeq ($$(PKGDEPS),)
 $$(error 'deps' is empty or missing for the entry '$(1)' in $(PKG_JSON_REL))
 endif
