@@ -14,6 +14,12 @@ endif
 OBJDIR_PREFIX := objs.
 
 #
+# Changeset info
+#
+DIRTY := $(filter X,$(lastword $(shell git describe --tags --all --dirty=' X')))
+CHANGESET := $(shell git log -1 --format=%h$(DIRTY))
+
+#
 # This repo ships with its build-environment. All the build
 # (vs clean etc) targets work as intended inside the buildenv.
 # User must first build it and use a "buildenv shell" to build
@@ -40,6 +46,8 @@ endif
 #
 PRODUCTS :=
 OBJ_SUBDIRS :=
+PKGS :=
+PRODTAR := {}
 
 #
 # Define targets for directories at the next level
@@ -48,6 +56,11 @@ THIS_DIR := $(dir $(lastword $(MAKEFILE_LIST)))
 SUBDIRS := firmware libs cmds
 include $(shell git rev-parse --show-toplevel)/Makefile.defs
 $(eval $(call inc_subdir,$(THIS_DIR),$(SUBDIRS)))
+
+#
+# Define pkg targets for entries in $(PKG_JSON)
+#
+$(eval $(call add_pkg_tgt))
 
 #
 # Common targets (after defining rules for targets at each level)
@@ -60,6 +73,7 @@ $(sort $(OBJ_SUBDIRS)):
 #
 all: $(patsubst %,all.%,$(PRODUCTS))
 tarball: $(patsubst %,tarball.%,$(PRODUCTS))
+pkg: $(patsubst %,pkg.%,$(PKGS))
 ifeq ("$(origin ARCH)","command line")
 clean:
 	@printf "%$(PCOL)s %s\n" "[RM]" "$(OBJDIR_PREFIX)$(ARCH)"
@@ -100,6 +114,7 @@ help:
 	@echo "          all: build all $(ARCH) products (default)"
 	@echo "        clean: remove all previously built $(ARCH) products"
 	@echo "      tarball: create individual tarball of previously built $(ARCH) products"
+	@echo "          pkg: create packages as defined in $(PKG_JSON_REL)"
 	@echo "     cleanall: remove all products for all targets architectues"
 	@echo "      clobber: cleanall + remove cscope/ctags"
 	@echo "       format: run 'clang-format' on new+modified files on this branch"

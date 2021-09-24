@@ -75,13 +75,11 @@ all.$(PRODUCT): $(LIB_SO) $(LIB_AR)
 CLIB_ELF_INSTALL_PREFIX :=
 $(eval $(call add_tarball_tgt,$(LIB_HDR_TARBALL),$(APIHDR),LIB_INCLUDE_INSTALL_PREFIX,$(CLIB_ELF_INSTALL_PREFIX),TAR_INSTALL_MODE))
 $(eval $(call add_tarball_tgt,$(LIB_BIN_TARBALL),$(LIB_SO) $(LIB_AR),LIB_INSTALL_PREFIX,$(CLIB_ELF_INSTALL_PREFIX),TAR_INSTALL_MODE))
+# Add to [product path, tarball path] "dictionary"
+$(eval $(call update_prodtar,$(PRODPATH),$(LIB_TARBALL)))
 $(LIB_TARBALL): $(LIB_BIN_TARBALL) $(LIB_HDR_TARBALL)
 	@printf "%$(PCOL)s %s\n" "[TAR]" "$@"
-	$(Q)for f in $^; do \
-		if [ -f "$$f" ]; then \
-			tar --concatenate -f $@ --absolute-names $$f; \
-		fi; \
-	 done;
+	$(Q)$(call concat_tars,$@,$^)
 
 tarball.$(PRODUCT): $(LIB_TARBALL)
 	@true    # avoid "Nothing to be done for .."

@@ -24,6 +24,8 @@ Makefile.stm32 := $(_TOPDIR_)/build/Makefile.stm32
 Makefile.toolchain := $(_TOPDIR_)/build/Makefile.toolchain
 Makefile.zephyr := $(_TOPDIR_)/build/Makefile.zephyr
 CLANG_TIDY_CONFIG := $(_TOPDIR_)/.clang-tidy
+PKG_JSON := $(_TOPDIR_)/build/pkg.json
+PKG_JSON_REL := $(subst $(_TOPDIR_)/,,$(PKG_JSON))
 
 #
 # Common constants
@@ -164,6 +166,8 @@ define inc_rule
 PRODIR ?= $(shell realpath . --relative-to $(_TOPDIR_))
 # Prepend path and rule type to the product name to make it unique in that path
 PRODUCT := $$(PRODIR)__$(1)__$(2)
+# Product path
+PRODPATH := $$(PRODIR):$(2)
 # For top Makefile
 PRODUCTS += $$(PRODUCT)
 
@@ -349,6 +353,15 @@ endef
 
 
 #
+# Macro to create dictionary of { product-path, tarball-path } as JSON object
+# [in] - product path, product tarball path (i.e. tarball target name)
+#
+define update_prodtar
+PRODTAR := $$(if $(1),$$(shell echo '$$(PRODTAR)' | jq '. += { "$(1)" : "$(2)" }'),$$(PRODTAR))
+endef
+
+
+#
 # Common macro to add "tarball" target for a product
 # [in] - tarball target name, target deps, install prefix name (not value),
 #        transform path (optional)
@@ -371,4 +384,67 @@ $(1): $(2)
 	$(Q)if [ -n "$$^" ]; then \
 		tar hcf $$@ $$(INSTALL_MODE) $$^ --transform "s|$$(PROD_OBJDIR_PREFIX)|$$(INSTALL_PREFIX)|"; \
 	fi
+endef
+
+
+#
+# Wrapper BASH macro to concatenate multiple .tar files into one
+# [in] - path of combined .tar file to create, one or more constituent .tar files
+#
+define concat_tars
+	rm -f $(1) && \
+	for f in $(2); do \
+		if [ -f "$$f" ]; then \
+			tar --concatenate -f $(1) --absolute-names $$f; \
+		fi; \
+	done
+endef
+
+
+#
+# Worker macro that defines target along with its tarball dependencies for
+# a package definition as described in $(PKG_JSON)
+# [in] - package name
+#
+define pkg_tgt
+# For top Makefile
+PKGS += $(1)
+
+# Use version string if specified, changeset string otherwise
+PKGVER := $$(shell jq -r '."$(1)".version // empty' $(PKG_JSON))
+PKGVER := $$(if $$(PKGVER),$$(PKGVER)$(DIRTY),$(CHANGESET))
+
+# Designated package path ($(ARCH) dependent)
+PKGPATH_PREFIX := $(OBJDIR)/$(1)
+PKGPATH := $$(PKGPATH_PREFIX)_$$(PKGVER)_$(ARCH).tar
+PKGPATH_COMPRESSED := $$(PKGPATH).gz
+
+# Derive package tar file paths from deps
+PKGDEPS := $$(sort $$(shell jq -r '."$(1)".deps[] // empty' $(PKG_JSON) 2>/dev/null))
+ifeq ($$(PKGDEPS),)
+$$(error 'deps' is empty or missing for the entry '$(1)' in $(PKG_JSON_REL))
+endif
+PKGFILES := $$(foreach dep,$$(PKGDEPS),$$(shell echo '$$(PRODTAR)' | jq -r '."$$(dep)" // empty'))
+
+$$(PKGPATH): $$(PKGFILES)
+	@printf "%$(PCOL)s %s\n" "[PKG]" "$$@"
+	$(Q)$$(call concat_tars,$$@,$$^)
+
+$$(PKGPATH_COMPRESSED): $$(PKGPATH)
+	@printf "%$(PCOL)s %s\n" "[GZIP]" "$$@"
+	$(Q)gzip -9 < $$^ > $$@
+
+clean.pkg.$(1):: PKGPATH_PREFIX := $$(PKGPATH_PREFIX)
+clean.pkg.$(1):
+	@printf "%$(PCOL)s %s\n" "[RM]" "$$(PKGPATH_PREFIX)*.{tar,tar.gz}"
+	$(Q)rm -f $$(PKGPATH_PREFIX)*.{tar,tar.gz}
+
+pkg.$(1): $$(if $$(clean),clean.pkg.$(1),$$(PKGPATH_COMPRESSED))
+endef
+
+#
+# Wrapper macro to "pkg_tgt" macro to add targets for all packages
+#
+define add_pkg_tgt
+$$(foreach pkg,$$(shell jq -r 'keys[]' $(PKG_JSON)),$$(eval $$(call pkg_tgt,$$(pkg))))
 endef
