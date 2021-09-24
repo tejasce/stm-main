@@ -414,9 +414,10 @@ PKGS += $(1)
 PKGVER := $$(shell jq -r '."$(1)".version // empty' $(PKG_JSON))
 PKGVER := $$(if $$(PKGVER),$$(PKGVER)$(DIRTY),$(CHANGESET))
 
-# Designated package path ($(ARCH) dependent)
+# Designated package path (architecture dependent)
+PKGARCH := $$(shell dpkg --print-architecture)
 PKGPATH_PREFIX := $(OBJDIR)/$(1)
-PKGPATH := $$(PKGPATH_PREFIX)_$$(PKGVER)_$(ARCH).tar
+PKGPATH := $$(PKGPATH_PREFIX)_$$(PKGVER)_$$(PKGARCH).tar
 PKGPATH_COMPRESSED := $$(PKGPATH).gz
 
 # Derive package tar file paths from deps
