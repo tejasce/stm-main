@@ -160,9 +160,10 @@ main()
     done
     shift $((OPTIND - 1))
 
-    # Check for mandatory args
+    # Check args
     [ -z "$pkgname" -o -z "$pkgver" -o -z "$arch" -o -z "$tarfile" ] && print_help "$0" && fail
     [ ! -f "$tarfile" ] && fail "'$tarfile' doesn't exist."
+    [ -n "$outdir" -a ! -d "$outdir" ] && fail "'$outdir' doesn't exist."
 
     gendeb "$pkgname" "$pkgver" "$arch" "$tarfile" "$description" "$maintainer" "$depends" "$license" "$outdir"
 }
