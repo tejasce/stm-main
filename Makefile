@@ -114,7 +114,7 @@ help:
 	@echo "          all: build all $(ARCH) products (default)"
 	@echo "        clean: remove all previously built $(ARCH) products"
 	@echo "      tarball: create individual tarball of previously built $(ARCH) products"
-	@echo "          pkg: create packages as defined in $(PKG_JSON_REL)"
+	@echo "          pkg: create packages (.tar.gz and .deb) as defined in $(PKG_JSON_REL)"
 	@echo "     cleanall: remove all products for all targets architectues"
 	@echo "      clobber: cleanall + remove cscope/ctags"
 	@echo "       format: run 'clang-format' on new+modified files on this branch"

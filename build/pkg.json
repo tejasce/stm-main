@@ -1,6 +1,9 @@
 {
     "example-with-version" : {
         "version" : "0.0.1",
+        "maintainer" : "Place Holder <placeholder@email.com>",
+        "description" : "Example package containing version info",
+        "depends" : "dfu-util, tree",
         "deps": [
             "libs/common/hello:hello",
             "libs/common/hello_cpp:hello_cpp",
@@ -9,6 +12,9 @@
         ]
     },
     "example-without-version" : {
+        "maintainer" : "Place Holder <placeholder@email.com>",
+        "description" : "Example package that uses changeset info as version string",
+        "depends" : "curl",
         "deps": [
             "firmware/zephyr/hello_world:hello_world.nucleo_f401re",
             "cmds/common/hello_world:hello_world"
