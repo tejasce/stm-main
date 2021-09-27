@@ -26,6 +26,7 @@ Makefile.zephyr := $(_TOPDIR_)/build/Makefile.zephyr
 CLANG_TIDY_CONFIG := $(_TOPDIR_)/.clang-tidy
 PKG_JSON := $(_TOPDIR_)/build/pkg.json
 PKG_JSON_REL := $(subst $(_TOPDIR_)/,,$(PKG_JSON))
+GENDEB := $(_TOPDIR_)/build/gendeb.sh
 
 #
 # Common constants
@@ -51,10 +52,10 @@ PCOL := 12
 # For clang-tidy. Enumerate flags that clang doesn't support to filter them out
 CLANG_UNSUPPORTED_CFLAGS := -mcpu=cortex-m4 -mthumb-interwork
 # Default install prefix (can be overriden at command-line and by individual product makefiles)
-DEFAULT_LIB_INCLUDE_INSTALL_PREFIX ?= /usr/include
-DEFAULT_LIB_INSTALL_PREFIX ?= /usr/lib
-DEFAULT_BIN_INSTALL_PREFIX ?= /usr/bin
-DEFAULT_FW_INSTALL_PREFIX ?= /usr/lib/firmware
+DEFAULT_LIB_INCLUDE_INSTALL_PREFIX ?= usr/include
+DEFAULT_LIB_INSTALL_PREFIX ?= usr/lib
+DEFAULT_BIN_INSTALL_PREFIX ?= usr/bin
+DEFAULT_FW_INSTALL_PREFIX ?= usr/lib/firmware
 DEFAULT_TAR_INSTALL_MODE ?=
 
 #
@@ -395,7 +396,7 @@ define concat_tars
 	rm -f $(1) && \
 	for f in $(2); do \
 		if [ -f "$$f" ]; then \
-			tar --concatenate -f $(1) --absolute-names $$f; \
+			tar --concatenate --file $(1) $$f; \
 		fi; \
 	done
 endef
@@ -412,12 +413,19 @@ PKGS += $(1)
 
 # Use version string if specified, changeset string otherwise
 PKGVER := $$(shell jq -r '."$(1)".version // empty' $(PKG_JSON))
-PKGVER := $$(if $$(PKGVER),$$(PKGVER)$(DIRTY),$(CHANGESET))
+TAR_PKGVER := $$(if $$(PKGVER),$$(PKGVER)$(DIRTY),$(CHANGESET))
 
-# Designated package path ($(ARCH) dependent)
+# For debian packaging, we must use arch-string as emitted by "dpkg --print-architecture".
+# Use $(GENDEB) provided option to translate from "uname -m" to "dpkg --print-architecture".
+# Also, version string must start with a number. Use "0." as prefix when it's not specified.
+DEB_ARCH := $$(shell $(GENDEB) -A "$(ARCH)")
+DEB_PKGVER := $$(if $$(PKGVER),$$(PKGVER)$(DIRTY),0.$(CHANGESET))
+
+# Designated packaged tarball-path (ARCH dependent) and debian-path (DEB_ARCH dependent)
 PKGPATH_PREFIX := $(OBJDIR)/$(1)
-PKGPATH := $$(PKGPATH_PREFIX)_$$(PKGVER)_$(ARCH).tar
-PKGPATH_COMPRESSED := $$(PKGPATH).gz
+PKGPATH_TAR := $$(PKGPATH_PREFIX)_$$(TAR_PKGVER)_$$(ARCH).tar
+PKGPATH_DEB := $$(PKGPATH_PREFIX)_$$(DEB_PKGVER)_$$(DEB_ARCH).deb
+PKGPATH_TGZ := $$(PKGPATH_TAR:%.tar=%.tar.gz)
 
 # Derive package tar file paths from deps
 PKGDEPS := $$(sort $$(shell jq -r '."$(1)".deps[] // empty' $(PKG_JSON) 2>/dev/null))
@@ -426,20 +434,30 @@ $$(error 'deps' is empty or missing for the entry '$(1)' in $(PKG_JSON_REL))
 endif
 PKGFILES := $$(foreach dep,$$(PKGDEPS),$$(shell echo '$$(PRODTAR)' | jq -r '."$$(dep)" // empty'))
 
-$$(PKGPATH): $$(PKGFILES)
+$$(PKGPATH_TAR): $$(PKGFILES)
 	@printf "%$(PCOL)s %s\n" "[PKG]" "$$@"
 	$(Q)$$(call concat_tars,$$@,$$^)
 
-$$(PKGPATH_COMPRESSED): $$(PKGPATH)
+$$(PKGPATH_TGZ): $$(PKGPATH_TAR)
 	@printf "%$(PCOL)s %s\n" "[GZIP]" "$$@"
 	$(Q)gzip -9 < $$^ > $$@
 
+$$(PKGPATH_DEB):: DEB_PKGVER := $$(DEB_PKGVER)
+$$(PKGPATH_DEB):: DEB_ARCH := $$(DEB_ARCH)
+$$(PKGPATH_DEB): $$(PKGPATH_TGZ)
+	@printf "%$(PCOL)s %s\n" "[DEB]" "$$@"
+	$(Q)$(GENDEB) -p $(1) -v $$(DEB_PKGVER) -a $$(DEB_ARCH) -f "$$^" -o "$$(@D)" \
+		-m "$$(shell jq -r '."$(1)".maintainer // empty' $(PKG_JSON))" \
+		-d "$$(shell jq -r '."$(1)".depends // empty' $(PKG_JSON))" \
+		-s "$$(shell jq -r '."$(1)".description // empty' $(PKG_JSON))" \
+		$$(if $(DRY_RUN),-n, >/dev/null)
+
 clean.pkg.$(1):: PKGPATH_PREFIX := $$(PKGPATH_PREFIX)
 clean.pkg.$(1):
-	@printf "%$(PCOL)s %s\n" "[RM]" "$$(PKGPATH_PREFIX)*.{tar,tar.gz}"
-	$(Q)rm -f $$(PKGPATH_PREFIX)*.{tar,tar.gz}
+	@printf "%$(PCOL)s %s\n" "[RM]" "$$(PKGPATH_PREFIX)*.{tar,tar.gz,deb}"
+	$(Q)rm -f $$(PKGPATH_PREFIX)*.{tar,tar.gz,deb}
 
-pkg.$(1): $$(if $$(clean),clean.pkg.$(1),$$(PKGPATH_COMPRESSED))
+pkg.$(1): $$(if $$(clean),clean.pkg.$(1),$$(PKGPATH_DEB))
 endef
 
 #
