@@ -1,7 +1,7 @@
 ifdef ZEPHYR_APP
 
 # Basic sanity check for this rule
-ifeq ($(BOARD),)
+ifeq ($(BUILDENV_SHELL)$(BOARD),true)
 $(error ZEPHYR_APP: $(THIS_DIR)$(ZEPHYR_APP)/Makefile has no input BOARD)
 endif
 

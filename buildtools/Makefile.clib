@@ -1,7 +1,7 @@
 ifdef C_LIB
 
 # Basic sanity check for this rule
-ifeq ($(C_SRCS)$(I_HDRS),)
+ifeq ($(BUILDENV_SHELL)$(C_SRCS)$(I_HDRS),true)
 $(error C_LIB: $(THIS_DIR)$(C_LIB)/Makefile has no input C_SRCS or I_HDRS)
 endif
 

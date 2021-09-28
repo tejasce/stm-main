@@ -1,7 +1,7 @@
 ifdef PROTO_LIB
 
 # Basic sanity check for this rule
-ifeq ($(PB_SRCS),)
+ifeq ($(BUILDENV_SHELL)$(PB_SRCS),true)
 $(error PROTO_LIB: $(THIS_DIR)$(PROTO_LIB)/Makefile has no input PB_SRCS)
 endif
 

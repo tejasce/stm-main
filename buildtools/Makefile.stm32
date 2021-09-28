@@ -1,7 +1,7 @@
 ifdef STM32_ELF
 
 # Basic sanity check for this rule
-ifeq ($(C_SRCS)$(S_SRCS),)
+ifeq ($(BUILDENV_SHELL)$(C_SRCS)$(S_SRCS),true)
 $(error STM32_ELF: $(THIS_DIR)$(STM32_ELF)/Makefile has no input C_SRCS or S_SRCS)
 endif
 
