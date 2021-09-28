@@ -1,5 +1,10 @@
 ifdef C_LIB
 
+# Basic sanity check for this rule
+ifeq ($(BUILDENV_SHELL)$(C_SRCS)$(I_HDRS),true)
+$(error C_LIB: $(THIS_DIR)$(C_LIB)/Makefile has no input C_SRCS or I_HDRS)
+endif
+
 # This file defines rules for targets: [all|clean].$(PRODUCT)
 
 PRODUCT_OBJDIR := $(OBJDIR)/$(PRODIR)
@@ -60,7 +65,7 @@ $(foreach hdr,$(I_HDRS),$(eval $(call HDR_SYMLINK_TGT,$(hdr))))
 $(LIB_SO):: C_SRCS := $(C_SRCS)
 $(LIB_SO):: CXX := $(CXX)
 $(LIB_SO):: LFLAGS := $(LFLAGS)
-$(LIB_SO): $(DEP_SO) $(DEP_AR) $(APIHDR) $(C_OBJS)
+$(LIB_SO): $(DEP_SO) $(APIHDR) $(C_OBJS)
 	$(Q)if [ -n "$(C_SRCS)" ]; then \
 		printf "%$(PCOL)s %s\n" "[CXXLD]" $@; \
 		$(CXX) $(LFLAGS) -o $@ $(filter-out $(CC_H_EXTS_PATT),$^); \
@@ -83,8 +88,16 @@ all.$(PRODUCT): $(LIB_SO) $(LIB_AR)
 
 # No special install-prefix for a clib
 CLIB_ELF_INSTALL_PREFIX :=
+ifneq ($(I_HDRS),)
 $(eval $(call add_tarball_tgt,$(LIB_HDR_TARBALL),$(APIHDR),LIB_INCLUDE_INSTALL_PREFIX,$(CLIB_ELF_INSTALL_PREFIX),TAR_INSTALL_MODE))
+else
+LIB_HDR_TARBALL :=
+endif
+ifneq ($(C_SRCS),)
 $(eval $(call add_tarball_tgt,$(LIB_BIN_TARBALL),$(LIB_SO) $(LIB_AR),LIB_INSTALL_PREFIX,$(CLIB_ELF_INSTALL_PREFIX),TAR_INSTALL_MODE))
+else
+LIB_BIN_TARBALL :=
+endif
 # Add to [product path, tarball path] "dictionary"
 $(eval $(call update_prodtar,$(PRODPATH),$(LIB_TARBALL)))
 $(LIB_TARBALL): $(LIB_BIN_TARBALL) $(LIB_HDR_TARBALL)

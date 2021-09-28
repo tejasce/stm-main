@@ -1,5 +1,10 @@
 ifdef C_BIN
 
+# Basic sanity check for this rule
+ifeq ($(BUILDENV_SHELL)$(C_SRCS),true)
+$(error C_BIN: $(THIS_DIR)$(C_BIN)/Makefile has no input C_SRCS)
+endif
+
 # This file defines rules for targets: [all|clean].$(PRODUCT)
 
 PRODUCT_OBJDIR := $(OBJDIR)/$(PRODIR)
