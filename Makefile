@@ -88,7 +88,7 @@ endif
 # Apply clang-format to new+modified src files. Always runs inside buildenv shell
 #
 format: startenv
-	$(Q)$(BUILDENV_C) $(TOPDIR)/build/format.sh -m $(if $(DRY_RUN),-n,)
+	$(Q)$(BUILDENV_C) $(FORMAT) -m $(if $(DRY_RUN),-n,)
 
 #
 # Wrapper useful "clean" targets

@@ -14,19 +14,21 @@
 # always resolve.
 #
 _TOPDIR_ := $(shell git rev-parse --show-toplevel)
-Makefile.buildenv := $(_TOPDIR_)/build/Makefile.buildenv
-Makefile.cargo := $(_TOPDIR_)/build/Makefile.cargo
-Makefile.cbin := $(_TOPDIR_)/build/Makefile.cbin
-Makefile.clib := $(_TOPDIR_)/build/Makefile.clib
-Makefile.protobuf := $(_TOPDIR_)/build/Makefile.protobuf
-Makefile.ros := $(_TOPDIR_)/build/Makefile.ros
-Makefile.stm32 := $(_TOPDIR_)/build/Makefile.stm32
-Makefile.toolchain := $(_TOPDIR_)/build/Makefile.toolchain
-Makefile.zephyr := $(_TOPDIR_)/build/Makefile.zephyr
+BUILDTOOLS := $(_TOPDIR_)/buildtools
+Makefile.buildenv := $(BUILDTOOLS)/Makefile.buildenv
+Makefile.cargo := $(BUILDTOOLS)/Makefile.cargo
+Makefile.cbin := $(BUILDTOOLS)/Makefile.cbin
+Makefile.clib := $(BUILDTOOLS)/Makefile.clib
+Makefile.protobuf := $(BUILDTOOLS)/Makefile.protobuf
+Makefile.ros := $(BUILDTOOLS)/Makefile.ros
+Makefile.stm32 := $(BUILDTOOLS)/Makefile.stm32
+Makefile.toolchain := $(BUILDTOOLS)/Makefile.toolchain
+Makefile.zephyr := $(BUILDTOOLS)/Makefile.zephyr
 CLANG_TIDY_CONFIG := $(_TOPDIR_)/.clang-tidy
-PKG_JSON := $(_TOPDIR_)/build/pkg.json
+PKG_JSON := $(BUILDTOOLS)/pkg.json
 PKG_JSON_REL := $(subst $(_TOPDIR_)/,,$(PKG_JSON))
-GENDEB := $(_TOPDIR_)/build/gendeb.sh
+GENDEB := $(BUILDTOOLS)/gendeb.sh
+FORMAT := $(BUILDTOOLS)/format.sh
 
 #
 # Common constants
