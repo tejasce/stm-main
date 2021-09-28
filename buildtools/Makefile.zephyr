@@ -1,5 +1,10 @@
 ifdef ZEPHYR_APP
 
+# Basic sanity check for this rule
+ifeq ($(BOARD),)
+$(error ZEPHYR_APP: $(THIS_DIR)$(ZEPHYR_APP)/Makefile has no input BOARD)
+endif
+
 # Override to use appropriate $(OBJDIR) location (toolchain is already selected by buildenv)
 $(eval $(call inc_toolchain,firmware))
 

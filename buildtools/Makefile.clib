@@ -1,5 +1,10 @@
 ifdef C_LIB
 
+# Basic sanity check for this rule
+ifeq ($(C_SRCS)$(I_HDRS),)
+$(error C_LIB: $(THIS_DIR)$(C_LIB)/Makefile has no input C_SRCS or I_HDRS)
+endif
+
 # This file defines rules for targets: [all|clean].$(PRODUCT)
 
 PRODUCT_OBJDIR := $(OBJDIR)/$(PRODIR)
@@ -83,8 +88,16 @@ all.$(PRODUCT): $(LIB_SO) $(LIB_AR)
 
 # No special install-prefix for a clib
 CLIB_ELF_INSTALL_PREFIX :=
+ifneq ($(I_HDRS),)
 $(eval $(call add_tarball_tgt,$(LIB_HDR_TARBALL),$(APIHDR),LIB_INCLUDE_INSTALL_PREFIX,$(CLIB_ELF_INSTALL_PREFIX),TAR_INSTALL_MODE))
+else
+LIB_HDR_TARBALL :=
+endif
+ifneq ($(C_SRCS),)
 $(eval $(call add_tarball_tgt,$(LIB_BIN_TARBALL),$(LIB_SO) $(LIB_AR),LIB_INSTALL_PREFIX,$(CLIB_ELF_INSTALL_PREFIX),TAR_INSTALL_MODE))
+else
+LIB_BIN_TARBALL :=
+endif
 # Add to [product path, tarball path] "dictionary"
 $(eval $(call update_prodtar,$(PRODPATH),$(LIB_TARBALL)))
 $(LIB_TARBALL): $(LIB_BIN_TARBALL) $(LIB_HDR_TARBALL)
