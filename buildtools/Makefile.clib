@@ -65,7 +65,7 @@ $(foreach hdr,$(I_HDRS),$(eval $(call HDR_SYMLINK_TGT,$(hdr))))
 $(LIB_SO):: C_SRCS := $(C_SRCS)
 $(LIB_SO):: CXX := $(CXX)
 $(LIB_SO):: LFLAGS := $(LFLAGS)
-$(LIB_SO): $(DEP_SO) $(DEP_AR) $(APIHDR) $(C_OBJS)
+$(LIB_SO): $(DEP_SO) $(APIHDR) $(C_OBJS)
 	$(Q)if [ -n "$(C_SRCS)" ]; then \
 		printf "%$(PCOL)s %s\n" "[CXXLD]" $@; \
 		$(CXX) $(LFLAGS) -o $@ $(filter-out $(CC_H_EXTS_PATT),$^); \
