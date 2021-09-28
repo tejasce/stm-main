@@ -1,4 +1,4 @@
-DOCKERFILE := $(_TOPDIR_)/build/Dockerfile.buildenv
+DOCKERFILE := $(BUILDTOOLS)/Dockerfile.buildenv
 IMAGE_NAME := stm32_buildenv
 CONTAINER_NAME := $(IMAGE_NAME)$(subst /,.,$(subst $(HOME),,$(_TOPDIR_)))
 DOCKER_CMD := DOCKER_BUILDKIT=1 docker
