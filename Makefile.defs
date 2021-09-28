@@ -381,8 +381,8 @@ $(1):: PROD_OBJDIR_PREFIX := $$(PROD_OBJDIR_PREFIX)
 $(1):: INSTALL_PREFIX := $$(INSTALL_PREFIX)
 $(1):: INSTALL_MODE := $$(if $$(INSTALL_MODE),--mode $$(INSTALL_MODE),)
 $(1): $(2)
-	@printf "%$(PCOL)s %s\n" "[TAR]" "$$@"
-	$(Q)if [ -n "$$^" ]; then \
+	$(Q)if [ -n "$$(wildcard $$^)" ]; then \
+		printf "%$(PCOL)s %s\n" "[TAR]" "$$@"; \
 		tar hcf $$@ $$(INSTALL_MODE) $$^ --transform "s|$$(PROD_OBJDIR_PREFIX)|$$(INSTALL_PREFIX)|"; \
 	fi
 endef
