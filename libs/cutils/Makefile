@@ -1,4 +1,4 @@
 THIS_DIR := $(dir $(lastword $(MAKEFILE_LIST)))
-SUBDIRS := alloc time types
+SUBDIRS := alloc list time types
 include $(shell git rev-parse --show-toplevel)/Makefile.defs
 $(eval $(call inc_subdir,$(THIS_DIR),$(SUBDIRS)))

@@ -5,8 +5,7 @@
         "description" : "Example package containing version info",
         "depends" : "dfu-util, tree",
         "deps": [
-            "libs/common/hello:hello",
-            "libs/common/hello_cpp:hello_cpp",
+            "libs/cutils/list:list",
             "cmds/common/hello_world_cpp:hello_world_cpp",
             "firmware/nucleo/Lidar_Delivery:lidar_delivery"
         ]
