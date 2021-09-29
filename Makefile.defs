@@ -469,6 +469,7 @@ define add_pkg_tgt
 $$(foreach pkg,$$(shell jq -r 'keys[]' $(PKG_JSON)),$$(eval $$(call pkg_tgt,$$(pkg))))
 endef
 
+
 #
 # Macro that executes build verification steps as enumerated under "verify" target
 #
