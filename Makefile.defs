@@ -473,6 +473,7 @@ endef
 # Macro that executes build verification steps as enumerated under "verify" target
 #
 define run_verify_tgt
-        @echo "$(1)"
-        $(Q)$(MAKE) -j $(CORES) --no-print-directory $(2) >/dev/null 2>&1
+        @echo $(1) | tee -a $(MKVERIFY_LOGS)
+        $(Q)$(MAKE) -j $(CORES) --no-print-directory $(2) >>$(MKVERIFY_LOGS) 2>&1 || \
+		{ cat $(MKVERIFY_LOGS) && rm -f $(MKVERIFY_LOGS) && false; }
 endef

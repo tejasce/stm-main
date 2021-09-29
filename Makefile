@@ -104,15 +104,22 @@ clobber: cleanall
 #
 # Sanity check for repo's build
 #
+verify:: MKVERIFY_LOGS := /tmp/mkverify.log
 verify:
 	$(call run_verify_tgt,"o  Format check",format DRY_RUN=1)
 	$(call run_verify_tgt,"o  Clobber",clobber)
-	$(call run_verify_tgt,"o  Native tarball",tarball)
-	$(if $(filter $(TARGET_ARCH),x86_64), \
-		$(call run_verify_tgt,"o  ARCH=aarch64 tarball",tarball ARCH=aarch64),)
-	$(call run_verify_tgt,"o  ARCH=arm tarball",tarball ARCH=arm)
-	$(call run_verify_tgt,"o  Generate packages",pkg)
+	$(call run_verify_tgt,"o  Generate tarball (ARCH=$(TARGET_ARCH), native)",tarball)
+ifeq ($(TARGET_ARCH),x86_64)
+	$(call run_verify_tgt,"o  Generate tarball (ARCH=aarch64)",tarball ARCH=aarch64)
+endif
+	$(call run_verify_tgt,"o  Generate tarball (ARCH=arm)",tarball ARCH=arm)
+	$(call run_verify_tgt,"o  Generate packages (ARCH=$(TARGET_ARCH), native)",pkg)
+ifeq ($(TARGET_ARCH),x86_64)
+	$(call run_verify_tgt,"o  Generate packages (ARCH=aarch64)",pkg ARCH=aarch64)
+endif
+	$(call run_verify_tgt,"o  Generate packages (ARCH=arm)",pkg ARCH=arm)
 	$(call run_verify_tgt,"o  Clobber",clobber)
+	$(Q)rm -f $(MKVERIFY_LOGS)
 
 .DEFAULT_GOAL := all
 
