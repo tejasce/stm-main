@@ -101,6 +101,19 @@ clobber: cleanall
 	@printf "%$(PCOL)s %s\n" "[RM]" "cscope.* tags"
 	$(Q)rm -f cscope.* tags
 
+#
+# Sanity check for repo's build
+#
+verify:
+	$(call run_verify_tgt,"o  Format check",format DRY_RUN=1)
+	$(call run_verify_tgt,"o  Clobber",clobber)
+	$(call run_verify_tgt,"o  Native tarball",tarball)
+	$(if $(filter $(TARGET_ARCH),x86_64), \
+		$(call run_verify_tgt,"o  ARCH=aarch64 tarball",tarball ARCH=aarch64),)
+	$(call run_verify_tgt,"o  ARCH=arm tarball",tarball ARCH=arm)
+	$(call run_verify_tgt,"o  Generate packages",pkg)
+	$(call run_verify_tgt,"o  Clobber",clobber)
+
 .DEFAULT_GOAL := all
 
 #
@@ -118,6 +131,7 @@ help:
 	@echo "     cleanall: remove all products for all targets architectues"
 	@echo "      clobber: cleanall + remove cscope/ctags"
 	@echo "       format: run 'clang-format' on new+modified files on this branch"
+	@echo "       verify: verify build sanity of repo"
 	@echo "         help: show this message"
 	@echo "<path>[:prod]: build all $(ARCH) products for <path> and subdirs below"
 	@echo "               if specified, build only the product "prod" in the <path>"
