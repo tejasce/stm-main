@@ -13,6 +13,8 @@ extern "C" {
 #define PTR_TO_ADDR(p) ((uintptr_t)(p))
 #define ADDR_TO_PTR(a) ((void *)(uintptr_t)(a))
 
+#define BIT(n) (1 << (n))
+
 #ifdef __cplusplus
 }
 #endif
